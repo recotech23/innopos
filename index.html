@@ -1,0 +1,3877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>INNOVATION FITNESS - Point of Sale & Supabase DB</title>
+
+    <!-- Web App Favicon & Icon -->
+    <link rel="icon" type="image/png" href="https://arleta.site/interactivelink/5674/innovation_logo_FA-removebg-preview.png">
+    <link rel="apple-touch-icon" href="https://arleta.site/interactivelink/5674/innovation_logo_FA-removebg-preview.png">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Chart.js for Dynamic Reports -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Supabase JS Client SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        :root {
+            --bg-primary: #0a0b0d;
+            --bg-secondary: #12141a;
+            --bg-card: #181a22;
+            --bg-card-hover: #202430;
+            --border-color: rgba(212, 175, 55, 0.2);
+            --border-highlight: rgba(212, 175, 55, 0.6);
+            
+            --gold-primary: #d4af37;
+            --gold-light: #f3e5ab;
+            --gold-dark: #aa771c;
+            --gold-gradient: linear-gradient(135deg, #BF953F 0%, #FCF6BA 25%, #B38728 50%, #FBF5B7 75%, #AA771C 100%);
+            --gold-gradient-button: linear-gradient(135deg, #d4af37 0%, #aa771c 100%);
+            --gold-glow: rgba(212, 175, 55, 0.25);
+            
+            --text-main: #f0f2f5;
+            --text-muted: #8e95a5;
+            --text-gold: #e5c158;
+            
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 16px;
+            --shadow-gold: 0 4px 20px rgba(212, 175, 55, 0.15);
+            --shadow-card: 0 8px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, h5, h6, .brand-text {
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2a2e3d;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--gold-dark);
+        }
+
+        .app-header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-logo-svg {
+            height: 42px;
+            width: auto;
+            filter: drop-shadow(0 0 8px var(--gold-glow));
+            flex-shrink: 0;
+            transition: transform 0.2s ease;
+        }
+
+        .brand-logo:hover .brand-logo-svg {
+            transform: scale(1.04);
+        }
+
+        .brand-logo .title {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: 1.2px;
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-logo .subtitle {
+            font-size: 9px;
+            letter-spacing: 2px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .header-stats {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .stat-pill {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 6px 12px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .stat-pill:hover {
+            border-color: var(--gold-primary);
+        }
+
+        .stat-pill i {
+            color: var(--gold-primary);
+        }
+
+        .db-status-badge {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 10px;
+            text-transform: uppercase;
+        }
+        .db-online { background: rgba(16, 185, 129, 0.2); color: var(--success); border: 1px solid var(--success); }
+        .db-offline { background: rgba(245, 158, 11, 0.2); color: var(--warning); border: 1px solid var(--warning); }
+
+        .app-container {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 65px);
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 230px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 16px 10px;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: var(--radius-md);
+            color: var(--text-muted);
+            background: transparent;
+            border: 1px solid transparent;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            width: 100%;
+            min-height: 44px;
+            user-select: none;
+        }
+
+        .nav-btn i {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .nav-btn:hover {
+            color: var(--text-main);
+            background: rgba(212, 175, 55, 0.05);
+            border-color: rgba(212, 175, 55, 0.1);
+        }
+
+        .nav-btn.active {
+            color: #000;
+            background: var(--gold-gradient);
+            font-weight: 700;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+        }
+
+        .nav-btn.active i {
+            color: #000;
+        }
+
+        .content-area {
+            flex: 1;
+            background: var(--bg-primary);
+            overflow-y: auto;
+            padding: 20px;
+            position: relative;
+        }
+
+        .view-section {
+            display: none;
+            animation: fadeIn 0.25s ease-in-out;
+        }
+
+        .view-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .pos-grid {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 20px;
+            height: calc(100vh - 105px);
+        }
+
+        .pos-products-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            overflow-y: auto;
+            padding-right: 6px;
+        }
+
+        .search-category-bar {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            background: var(--bg-primary);
+            padding-bottom: 8px;
+            z-index: 10;
+        }
+
+        .search-box {
+            position: relative;
+            width: 100%;
+        }
+
+        .search-box input {
+            width: 100%;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 12px 16px 12px 42px;
+            color: var(--text-main);
+            font-size: 16px;
+            outline: none;
+            transition: border 0.2s;
+            min-height: 44px;
+        }
+
+        .search-box input:focus {
+            border-color: var(--gold-primary);
+            box-shadow: 0 0 10px var(--gold-glow);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        .category-pills {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .cat-pill {
+            padding: 10px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--text-muted);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+            user-select: none;
+            min-height: 40px;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .cat-pill.active, .cat-pill:hover {
+            background: var(--border-color);
+            color: var(--gold-light);
+            border-color: var(--gold-primary);
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 14px;
+        }
+
+        .product-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+            min-height: 110px;
+            user-select: none;
+        }
+
+        .product-card:hover, .product-card:active {
+            transform: translateY(-2px);
+            border-color: var(--gold-primary);
+            box-shadow: var(--shadow-gold);
+            background: var(--bg-card-hover);
+        }
+
+        .product-card .cat-badge {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--gold-primary);
+            font-weight: 700;
+        }
+
+        .product-card .p-name {
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1.3;
+            color: var(--text-main);
+        }
+
+        .product-card .p-stock {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .product-card .p-stock.low {
+            color: var(--warning);
+            font-weight: 600;
+        }
+
+        .product-card .p-price {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--gold-light);
+        }
+
+        .product-card .add-btn {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: var(--gold-gradient-button);
+            color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            opacity: 0.95;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
+
+        .cart-panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .cart-header {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-card);
+        }
+
+        .cart-header h3 {
+            font-size: 15px;
+            color: var(--gold-light);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .cart-details-inputs {
+            padding: 12px;
+            background: rgba(0,0,0,0.2);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .select-input, .text-input {
+            width: 100%;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 10px 12px;
+            color: var(--text-main);
+            font-size: 16px;
+            outline: none;
+            min-height: 44px;
+        }
+
+        .select-input:focus, .text-input:focus {
+            border-color: var(--gold-primary);
+        }
+
+        .cart-items-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .cart-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            background: var(--bg-card);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: var(--radius-md);
+            gap: 8px;
+        }
+
+        .cart-item-info {
+            flex: 1;
+        }
+
+        .cart-item-info .title {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .cart-item-info .price {
+            font-size: 12px;
+            color: var(--gold-light);
+        }
+
+        .cart-qty-ctrl {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--bg-primary);
+            border-radius: 6px;
+            padding: 2px 6px;
+        }
+
+        .qty-btn {
+            background: transparent;
+            border: none;
+            color: var(--gold-primary);
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            font-size: 18px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .qty-num {
+            font-size: 13px;
+            font-weight: 600;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        .cart-item-remove {
+            color: var(--danger);
+            cursor: pointer;
+            padding: 8px;
+            font-size: 15px;
+            opacity: 0.8;
+        }
+
+        .cart-summary {
+            padding: 14px 16px;
+            background: var(--bg-card);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .summary-row.total {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--text-main);
+            border-top: 1px solid var(--border-color);
+            padding-top: 8px;
+            margin-top: 4px;
+        }
+
+        .summary-row.total .amt {
+            color: var(--gold-light);
+        }
+
+        .cart-actions {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 10px;
+            margin-top: 6px;
+        }
+
+        .btn {
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            border: none;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+            min-height: 44px;
+            user-select: none;
+        }
+
+        .btn-gold {
+            background: var(--gold-gradient-button);
+            color: #000;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2);
+        }
+
+        .btn-gold:hover, .btn-gold:active {
+            opacity: 0.95;
+            transform: translateY(-1px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .btn-outline:hover, .btn-outline:active {
+            color: var(--text-main);
+            border-color: var(--text-muted);
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .table-wrapper {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .custom-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 13px;
+        }
+
+        .custom-table th {
+            background: rgba(212, 175, 55, 0.08);
+            color: var(--gold-light);
+            padding: 12px 14px;
+            font-weight: 600;
+            border-bottom: 1px solid var(--border-color);
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        .custom-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+            white-space: nowrap;
+        }
+
+        .custom-table tr:hover {
+            background: rgba(255,255,255,0.02);
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .badge-success { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+        .badge-warning { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+        .badge-gold { background: rgba(212, 175, 55, 0.15); color: var(--gold-primary); }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .kpi-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .kpi-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-md);
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: var(--gold-primary);
+            flex-shrink: 0;
+        }
+
+        .kpi-info .val {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--gold-light);
+            line-height: 1.2;
+        }
+
+        .kpi-info .lbl {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.88);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.2s ease;
+            padding: 16px;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-box {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-highlight);
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            transform: scale(0.95);
+            transition: transform 0.2s;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .modal-overlay.active .modal-box {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .modal-header h3 {
+            color: var(--gold-light);
+            font-size: 16px;
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 22px;
+            cursor: pointer;
+            padding: 4px 8px;
+        }
+
+        .pin-modal-box {
+            max-width: 380px;
+            text-align: center;
+            align-items: center;
+            padding: 28px 20px;
+        }
+
+        .pin-dots {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin: 16px 0 20px 0;
+        }
+
+        .pin-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid var(--gold-primary);
+            background: transparent;
+            transition: all 0.15s ease;
+        }
+
+        .pin-dot.filled {
+            background: var(--gold-primary);
+            box-shadow: 0 0 10px var(--gold-glow);
+        }
+
+        .pin-keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            width: 100%;
+            max-width: 280px;
+        }
+
+        .pin-key {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            font-size: 20px;
+            font-weight: 700;
+            height: 58px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+            user-select: none;
+        }
+
+        .pin-key:hover, .pin-key:active {
+            background: var(--border-color);
+            border-color: var(--gold-primary);
+            color: var(--gold-light);
+            transform: scale(0.97);
+        }
+
+        .pin-key.action-key {
+            font-size: 14px;
+            color: var(--gold-light);
+        }
+
+        .payment-methods-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .pay-method-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 14px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            user-select: none;
+        }
+
+        .pay-method-card i {
+            font-size: 22px;
+            color: var(--gold-primary);
+        }
+
+        .pay-method-card.selected, .pay-method-card:hover {
+            border-color: var(--gold-primary);
+            background: rgba(212, 175, 55, 0.1);
+        }
+
+        .receipt-paper {
+            background: #fff;
+            color: #000;
+            padding: 18px;
+            font-family: 'Courier New', Courier, monospace;
+            border-radius: 4px;
+            max-width: 320px;
+            margin: 0 auto;
+            box-shadow: 0 0 10px rgba(255,255,255,0.2);
+            font-size: 12px;
+        }
+
+        .receipt-paper .r-center { text-align: center; }
+        .receipt-paper .r-bold { font-weight: bold; }
+        .receipt-paper .r-line { border-bottom: 1px dashed #000; margin: 8px 0; }
+        .receipt-paper .r-flex { display: flex; justify-content: space-between; }
+
+        .sticky-col {
+            position: sticky;
+            left: 0;
+            background: var(--bg-card) !important;
+            z-index: 2;
+        }
+
+        th.sticky-col {
+            z-index: 3;
+            background: #232733 !important;
+        }
+
+        @media (max-width: 1023px) {
+            .app-container {
+                flex-direction: column;
+                height: auto;
+                overflow: visible;
+            }
+
+            .sidebar {
+                width: 100%;
+                flex-direction: row;
+                overflow-x: auto;
+                padding: 10px;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+                -webkit-overflow-scrolling: touch;
+                position: sticky;
+                top: 60px;
+                z-index: 30;
+                background: var(--bg-secondary);
+            }
+
+            .sidebar .nav-btn {
+                white-space: nowrap;
+                width: auto;
+                flex: 0 0 auto;
+                padding: 8px 14px;
+                min-height: 40px;
+            }
+
+            .pos-grid {
+                grid-template-columns: 1fr;
+                height: auto;
+                gap: 16px;
+            }
+
+            .cart-panel {
+                max-height: 550px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .app-header {
+                padding: 8px 12px;
+            }
+
+            .brand-logo-svg {
+                height: 34px;
+            }
+
+            .brand-logo .title {
+                font-size: 15px;
+            }
+
+            .header-stats {
+                width: 100%;
+                justify-content: space-between;
+                gap: 6px;
+            }
+
+            .stat-pill {
+                font-size: 11px;
+                padding: 4px 8px;
+            }
+
+            .content-area {
+                padding: 12px;
+            }
+
+            .products-grid {
+                grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+                gap: 10px;
+            }
+
+            .product-card {
+                padding: 10px;
+            }
+
+            .product-card .p-name {
+                font-size: 13px;
+            }
+
+            .product-card .p-price {
+                font-size: 14px;
+            }
+
+            .kpi-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .payment-methods-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #printable-receipt, #printable-receipt * {
+                visibility: visible;
+            }
+            #printable-receipt {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="app-header">
+        <div class="brand-logo">
+            <svg class="brand-logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 170 150">
+                <defs>
+                    <linearGradient id="hdr-logo-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#BF953F" />
+                        <stop offset="25%" stop-color="#FCF6BA" />
+                        <stop offset="50%" stop-color="#B38728" />
+                        <stop offset="75%" stop-color="#FBF5B7" />
+                        <stop offset="100%" stop-color="#AA771C" />
+                    </linearGradient>
+                </defs>
+                <path d="M 118 18 L 18 18 L 18 132 L 138 132 L 138 42" fill="none" stroke="url(#hdr-logo-gold)" stroke-width="8" stroke-linecap="square"/>
+                <rect x="126" y="10" width="14" height="14" fill="url(#hdr-logo-gold)" />
+                <rect x="71" y="44" width="14" height="14" fill="url(#hdr-logo-gold)" />
+                <rect x="71" y="66" width="14" height="48" fill="url(#hdr-logo-gold)" />
+            </svg>
+            <div>
+                <div class="title">INNOVATION FITNESS</div>
+                <div class="subtitle">POS & Supabase Backend</div>
+            </div>
+        </div>
+
+        <div class="header-stats">
+            <div class="stat-pill" onclick="openDbModal()" title="Click to configure Supabase Connection">
+                <i class="fa-solid fa-database"></i>
+                <span id="db-status-badge" class="db-status-badge db-offline">Offline</span>
+            </div>
+            <div class="stat-pill">
+                <i class="fa-solid fa-clock"></i>
+                <span id="current-time">00:00:00 AM</span>
+            </div>
+            <div class="stat-pill" onclick="lockTerminal()" title="Click to Switch Cashier / Lock Terminal">
+                <i class="fa-solid fa-user-check"></i>
+                <span>Cashier: <strong id="header-cashier-name">Admin Passcode Required</strong></span>
+                <i class="fa-solid fa-lock" style="font-size: 10px; margin-left: 4px;"></i>
+            </div>
+            <div class="stat-pill">
+                <i class="fa-solid fa-cash-register"></i>
+                <span>Today: <strong id="header-today-sales">RM 0.00</strong></span>
+            </div>
+        </div>
+    </header>
+
+    <div class="app-container">
+        <nav class="sidebar">
+            <button class="nav-btn active" onclick="switchTab('pos')">
+                <i class="fa-solid fa-cart-shopping"></i> POS Register
+            </button>
+            <button class="nav-btn" onclick="switchTab('products')">
+                <i class="fa-solid fa-boxes-stacked"></i> Products & Catalog
+            </button>
+            <button class="nav-btn" onclick="switchTab('inventory')">
+                <i class="fa-solid fa-warehouse"></i> Inventory Stock
+            </button>
+            <button class="nav-btn" onclick="switchTab('pt-commissions')">
+                <i class="fa-solid fa-user-ninja"></i> PT Commissions
+            </button>
+            <button class="nav-btn" onclick="switchTab('reports')">
+                <i class="fa-solid fa-chart-line"></i> Sales Reports
+            </button>
+            <button class="nav-btn" onclick="switchTab('history')">
+                <i class="fa-solid fa-receipt"></i> Transaction Log
+            </button>
+        </nav>
+
+        <main class="content-area">
+            
+            <section id="view-pos" class="view-section active">
+                <div class="pos-grid">
+                    <div class="pos-products-container">
+                        <div class="search-category-bar">
+                            <div class="search-box">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="text" id="pos-search-input" placeholder="Search membership, service, supplement, apparel..." oninput="filterPosProducts()">
+                            </div>
+                            <div class="category-pills" id="pos-cat-pills">
+                                <div class="cat-pill active" onclick="filterPosCat('ALL', this)">All Items</div>
+                                <div class="cat-pill" onclick="filterPosCat('Memberships', this)">Memberships</div>
+                                <div class="cat-pill" onclick="filterPosCat('PT Sessions', this)">PT Sessions</div>
+                                <div class="cat-pill" onclick="filterPosCat('Beverages', this)">Beverages</div>
+                                <div class="cat-pill" onclick="filterPosCat('Apparel', this)">Apparel</div>
+                                <div class="cat-pill" onclick="filterPosCat('Services', this)">Services</div>
+                            </div>
+                        </div>
+
+                        <div class="products-grid" id="pos-products-grid"></div>
+                    </div>
+
+                    <div class="cart-panel">
+                        <div class="cart-header">
+                            <h3><i class="fa-solid fa-basket-shopping"></i> Current Order</h3>
+                            <button class="btn-outline" style="padding: 4px 8px; font-size: 11px;" onclick="clearCart()">Reset</button>
+                        </div>
+
+                        <div class="cart-details-inputs">
+                            <div class="form-row">
+                                <input type="text" id="cart-member-name" class="text-input" placeholder="Member / Customer Name (Optional)">
+                            </div>
+                            <div class="form-row">
+                                <select id="cart-trainer-select" class="select-input">
+                                    <option value="">-- Select Trainer --</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="cart-items-list" id="cart-items-container"></div>
+
+                        <div class="cart-summary">
+                            <div class="summary-row">
+                                <span>Subtotal</span>
+                                <span id="cart-subtotal">RM 0.00</span>
+                            </div>
+                            <div class="summary-row total">
+                                <span>Total Amount</span>
+                                <span class="amt" id="cart-total">RM 0.00</span>
+                            </div>
+
+                            <div class="cart-actions">
+                                <button class="btn btn-danger" onclick="clearCart()">Clear</button>
+                                <button class="btn btn-gold" onclick="openPaymentModal()">
+                                    <i class="fa-solid fa-credit-card"></i> Pay Now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="view-products" class="view-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <h2>Product & Service Management</h2>
+                        <p style="color: var(--text-muted); font-size: 13px;">Manage gym plans, personal training packages, supplements & retail merchandise</p>
+                    </div>
+                    <button class="btn btn-gold" onclick="openProductModal()">
+                        <i class="fa-solid fa-plus"></i> Add New Product
+                    </button>
+                </div>
+
+                <div class="table-wrapper">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Selling Price</th>
+                                <th>Cost Price</th>
+                                <th>Stock Qty</th>
+                                <th>PT Comm Rate</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="product-list-table"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="view-inventory" class="view-section">
+                <div style="margin-bottom: 16px;">
+                    <h2>Inventory & Stock Tracking</h2>
+                    <p style="color: var(--text-muted); font-size: 13px;">Monitor real-time retail stocks and manage product replenishment</p>
+                </div>
+
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
+                        <div class="kpi-info">
+                            <div class="val" id="inv-total-items">0</div>
+                            <div class="lbl">Total Product Lines</div>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon"><i class="fa-solid fa-triangle-exclamation" style="color: var(--warning);"></i></div>
+                        <div class="kpi-info">
+                            <div class="val" id="inv-low-stock">0</div>
+                            <div class="lbl">Low Stock Alerts (&lt;10)</div>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon"><i class="fa-solid fa-vault"></i></div>
+                        <div class="kpi-info">
+                            <div class="val" id="inv-valuation">RM 0.00</div>
+                            <div class="lbl">Inventory Valuation</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>Product Item</th>
+                                <th>Category</th>
+                                <th>Current Stock</th>
+                                <th>Stock Status</th>
+                                <th>Adjust Stock</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-list-table"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="view-pt-commissions" class="view-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <h2>Personal Trainer Commissions</h2>
+                        <p style="color: var(--text-muted); font-size: 13px;">Track sales performance and calculated payout earnings for fitness trainers</p>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <label style="font-size: 13px; color: var(--text-muted); font-weight: 500;">Filter Trainer:</label>
+                        <select id="comm-trainer-filter" class="select-input" style="width: 180px;" onchange="renderTrainerCommissions()">
+                            <option value="ALL">All Trainers</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="kpi-grid" id="trainer-kpis-grid"></div>
+
+                <div class="table-wrapper">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>Date / Time</th>
+                                <th>Receipt ID</th>
+                                <th>Trainer Name</th>
+                                <th>Customer / Plan</th>
+                                <th>Sale Amount</th>
+                                <th>Tier Share Rate</th>
+                                <th>Trainer Earnings</th>
+                                <th>Invoice</th>
+                            </tr>
+                        </thead>
+                        <tbody id="trainer-comm-table"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="view-reports" class="view-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <h2>Sales Analytics & Financial Reports</h2>
+                        <p style="color: var(--text-muted); font-size: 13px;">Review revenue, transaction volume, and performance periods</p>
+                    </div>
+
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                        <button class="btn btn-outline" style="padding: 8px 12px; font-size: 12px;" onclick="changeReportPeriod('daily', this)">Daily</button>
+                        <button class="btn btn-outline" style="padding: 8px 12px; font-size: 12px; border-color: var(--gold-primary); color: var(--gold-light);" onclick="changeReportPeriod('weekly', this)">Weekly</button>
+                        <button class="btn btn-outline" style="padding: 8px 12px; font-size: 12px;" onclick="changeReportPeriod('monthly', this)">Monthly</button>
+                        <button class="btn btn-outline" style="padding: 8px 12px; font-size: 12px;" onclick="changeReportPeriod('yearly', this)">Yearly</button>
+                        <button class="btn btn-gold" style="padding: 8px 12px; font-size: 12px;" onclick="exportReportCSV()"><i class="fa-solid fa-download"></i> CSV Export</button>
+                    </div>
+                </div>
+
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-icon"><i class="fa-solid fa-coins"></i></div>
+                        <div class="kpi-info">
+                            <div class="val" id="rep-total-revenue">RM 0.00</div>
+                            <div class="lbl">Total Period Revenue</div>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                        <div class="kpi-info">
+                            <div class="val" id="rep-total-orders">0</div>
+                            <div class="lbl">Total Orders</div>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon"><i class="fa-solid fa-chart-pie"></i></div>
+                        <div class="kpi-info">
+                            <div class="val" id="rep-avg-order">RM 0.00</div>
+                            <div class="lbl">Average Order Value</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 16px; margin-bottom: 20px;">
+                    <h3 style="color: var(--gold-light); margin-bottom: 12px; font-size: 15px;">Revenue Trend Chart</h3>
+                    <div style="height: 250px; position: relative;">
+                        <canvas id="salesChart"></canvas>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-top: 20px; margin-bottom: 20px;">
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <h3 style="color: var(--gold-light); font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">
+                            <i class="fa-solid fa-credit-card"></i> Payment Method Summary
+                        </h3>
+                        <div class="table-wrapper">
+                            <table class="custom-table">
+                                <thead>
+                                    <tr>
+                                        <th>Payment Method</th>
+                                        <th style="text-align: right;">Amount (RM)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="rep-pay-table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <h3 style="color: var(--gold-light); font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">
+                            <i class="fa-solid fa-cart-flatbed"></i> Item Sales Breakdown
+                        </h3>
+                        <div class="table-wrapper">
+                            <table class="custom-table">
+                                <thead>
+                                    <tr>
+                                        <th>Item / Category</th>
+                                        <th style="text-align: center;">COUNT</th>
+                                        <th style="text-align: right;">RM</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="rep-items-table-body"></tbody>
+                                <tfoot id="rep-items-table-foot"></tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <h3 style="color: var(--gold-light); font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">
+                            <i class="fa-solid fa-user-ninja"></i> PT Training & Trainer Sales
+                        </h3>
+                        <div class="table-wrapper">
+                            <table class="custom-table">
+                                <thead>
+                                    <tr>
+                                        <th>Trainer Name</th>
+                                        <th style="text-align: right;">PT TRAINING (RM)</th>
+                                        <th style="text-align: right;">TOTAL (RM)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="rep-trainer-table-body"></tbody>
+                                <tfoot id="rep-trainer-table-foot"></tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="monthly-matrix-section" style="display: none; margin-top: 20px;">
+                    <h3 style="color: var(--gold-light); font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;">
+                        <i class="fa-solid fa-table-cells"></i> Monthly Everyday Sales & Payment Method Breakdown Ledger
+                    </h3>
+                    <div class="table-wrapper" style="overflow-x: auto;">
+                        <table class="custom-table" style="font-size: 11px; white-space: nowrap;">
+                            <thead>
+                                <tr style="background: rgba(212, 175, 55, 0.15); text-align: center;">
+                                    <th class="sticky-col" style="border-right: 1px solid var(--border-color);">DATE</th>
+                                    <th>CASH</th>
+                                    <th>TRANSFER</th>
+                                    <th>CARD</th>
+                                    <th style="border-right: 2px solid var(--gold-primary); background: rgba(212, 175, 55, 0.25);">PAYMENT TOTAL</th>
+                                    <th>WALKIN</th>
+                                    <th>PT</th>
+                                    <th>OTHERS</th>
+                                    <th>MEMBER</th>
+                                    <th>STUDIO</th>
+                                    <th>MINERAL</th>
+                                    <th>1.5L</th>
+                                    <th>ZERO</th>
+                                    <th>100PLUS</th>
+                                    <th>DP</th>
+                                    <th>OATSIDE</th>
+                                    <th>EXTRAJOSS</th>
+                                    <th>HANDWRAP</th>
+                                    <th>TSHIRT</th>
+                                    <th>TOWEL</th>
+                                    <th style="background: rgba(212, 175, 55, 0.25);">SALES TOTAL</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rep-monthly-matrix-tbody" style="text-align: right;"></tbody>
+                            <tfoot id="rep-monthly-matrix-tfoot" style="text-align: right; font-weight: bold;"></tfoot>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="view-history" class="view-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <h2>Transaction Log & Receipts</h2>
+                        <p style="color: var(--text-muted); font-size: 13px;">View and reprint previous sales transactions</p>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <label style="font-size: 12px; color: var(--text-muted); font-weight: 500;">Filter Date:</label>
+                            <input type="date" id="history-date-picker" class="text-input" style="width: 150px; padding: 6px 10px; min-height: 36px; font-size: 12px;" onchange="renderHistoryTable()">
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <label style="font-size: 12px; color: var(--text-muted); font-weight: 500;">Sort Order:</label>
+                            <select id="history-sort-order" class="select-input" style="width: 150px; padding: 6px 10px; min-height: 36px; font-size: 12px;" onchange="renderHistoryTable()">
+                                <option value="desc">Newest First</option>
+                                <option value="asc">Oldest First</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-outline" style="padding: 6px 12px; font-size: 12px; min-height: 36px;" onclick="clearHistoryDateFilter()">Clear Filter</button>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>Receipt ID</th>
+                                <th>Date & Time</th>
+                                <th>Customer</th>
+                                <th>Items Count</th>
+                                <th>Payment Method</th>
+                                <th>Total Paid</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-log-table"></tbody>
+                    </table>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <div class="modal-overlay active" id="login-modal">
+        <div class="modal-box pin-modal-box">
+            <div style="margin-bottom: 10px;">
+                <svg class="brand-logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 170 150" style="height: 52px;">
+                    <defs>
+                        <linearGradient id="pin-logo-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#BF953F" />
+                            <stop offset="25%" stop-color="#FCF6BA" />
+                            <stop offset="50%" stop-color="#B38728" />
+                            <stop offset="75%" stop-color="#FBF5B7" />
+                            <stop offset="100%" stop-color="#AA771C" />
+                        </linearGradient>
+                    </defs>
+                    <path d="M 118 18 L 18 18 L 18 132 L 138 132 L 138 42" fill="none" stroke="url(#pin-logo-gold)" stroke-width="8" stroke-linecap="square"/>
+                    <rect x="126" y="10" width="14" height="14" fill="url(#pin-logo-gold)" />
+                    <rect x="71" y="44" width="14" height="14" fill="url(#pin-logo-gold)" />
+                    <rect x="71" y="66" width="14" height="48" fill="url(#pin-logo-gold)" />
+                </svg>
+            </div>
+            <h2 style="font-size: 18px; color: var(--gold-light);">INNOVATION FITNESS</h2>
+            <p style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Enter Admin Passcode</p>
+
+            <div class="pin-dots" id="pin-dots-container">
+                <div class="pin-dot"></div>
+                <div class="pin-dot"></div>
+                <div class="pin-dot"></div>
+                <div class="pin-dot"></div>
+                <div class="pin-dot"></div>
+                <div class="pin-dot"></div>
+            </div>
+
+            <div class="pin-keypad">
+                <button class="pin-key" onclick="pressPin('1')">1</button>
+                <button class="pin-key" onclick="pressPin('2')">2</button>
+                <button class="pin-key" onclick="pressPin('3')">3</button>
+                <button class="pin-key" onclick="pressPin('4')">4</button>
+                <button class="pin-key" onclick="pressPin('5')">5</button>
+                <button class="pin-key" onclick="pressPin('6')">6</button>
+                <button class="pin-key" onclick="pressPin('7')">7</button>
+                <button class="pin-key" onclick="pressPin('8')">8</button>
+                <button class="pin-key" onclick="pressPin('9')">9</button>
+                <button class="pin-key action-key" onclick="clearPin()">CLEAR</button>
+                <button class="pin-key" onclick="pressPin('0')">0</button>
+                <button class="pin-key action-key" style="color: var(--gold-primary);" onclick="submitPin()">ENTER</button>
+            </div>
+            
+            <div id="pin-error-msg" style="color: var(--danger); font-size: 11px; margin-top: 12px; min-height: 16px; font-weight: bold;"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="payment-modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>Select Payment Method</h3>
+                <button class="modal-close" onclick="closeModal('payment-modal')">&times;</button>
+            </div>
+
+            <div style="text-align: center; margin: 6px 0;">
+                <div style="font-size: 12px; color: var(--text-muted);">Amount Due</div>
+                <div style="font-size: 28px; font-weight: 800; color: var(--gold-light);" id="pay-modal-amount">RM 0.00</div>
+            </div>
+
+            <div class="payment-methods-grid">
+                <div class="pay-method-card selected" onclick="selectPayMethod('Cash', this)">
+                    <i class="fa-solid fa-money-bill-wave"></i>
+                    <span style="font-weight: 600; font-size: 13px;">Cash</span>
+                </div>
+                <div class="pay-method-card" onclick="selectPayMethod('Online Transfer', this)">
+                    <i class="fa-solid fa-building-columns"></i>
+                    <span style="font-weight: 600; font-size: 13px;">Online Transfer</span>
+                </div>
+                <div class="pay-method-card" onclick="selectPayMethod('Debit/Credit Card', this)">
+                    <i class="fa-solid fa-credit-card"></i>
+                    <span style="font-weight: 600; font-size: 13px;">Debit/Credit Card</span>
+                </div>
+                <div class="pay-method-card" onclick="selectPayMethod('Partial', this)">
+                    <i class="fa-solid fa-scale-balanced"></i>
+                    <span style="font-weight: 600; font-size: 13px;">Partial</span>
+                </div>
+            </div>
+
+            <div id="cash-calculator-box" style="display: flex; flex-direction: column; gap: 8px; background: var(--bg-card); padding: 12px; border-radius: var(--radius-md);">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <label style="font-size: 12px; color: var(--text-muted);">Tendered Cash Amount:</label>
+                    <input type="number" id="cash-tendered" class="text-input" style="width: 110px; text-align: right; font-weight: bold;" placeholder="0.00" oninput="calcCashChange()">
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: bold;">
+                    <span>Change Due:</span>
+                    <span id="cash-change-due" style="color: var(--gold-light);">RM 0.00</span>
+                </div>
+            </div>
+
+            <div id="partial-calculator-box" style="display: none; flex-direction: column; gap: 8px; background: var(--bg-card); padding: 12px; border-radius: var(--radius-md);">
+                <div style="font-size: 12px; color: var(--gold-light); font-weight: bold; border-bottom: 1px solid var(--border-color); padding-bottom: 4px;">
+                    Split Payment (Choose 2 Methods)
+                </div>
+                
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <select id="partial-m1-select" class="select-input" style="flex: 1;" onchange="updatePartialCalc()">
+                        <option value="Cash">Cash</option>
+                        <option value="Online Transfer">Online Transfer</option>
+                        <option value="Debit/Credit Card">Debit/Credit Card</option>
+                    </select>
+                    <input type="number" step="0.01" min="0" id="partial-m1-amt" class="text-input" style="width: 100px; text-align: right; font-weight: bold;" placeholder="Amt 1" oninput="updatePartialCalc('m1')">
+                </div>
+
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <select id="partial-m2-select" class="select-input" style="flex: 1;" onchange="updatePartialCalc()">
+                        <option value="Online Transfer">Online Transfer</option>
+                        <option value="Cash">Cash</option>
+                        <option value="Debit/Credit Card">Debit/Credit Card</option>
+                    </select>
+                    <input type="number" step="0.01" min="0" id="partial-m2-amt" class="text-input" style="width: 100px; text-align: right; font-weight: bold;" placeholder="Amt 2" oninput="updatePartialCalc('m2')">
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; border-top: 1px solid var(--border-color); padding-top: 4px;">
+                    <span style="color: var(--text-muted);">Total Allocated:</span>
+                    <span id="partial-total-allocated" style="font-weight: bold; color: var(--text-main);">RM 0.00</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px;">
+                    <span style="color: var(--text-muted);">Remaining Due:</span>
+                    <span id="partial-remaining-due" style="font-weight: bold; color: var(--warning);">RM 0.00</span>
+                </div>
+            </div>
+
+            <button class="btn btn-gold" style="width: 100%; margin-top: 6px;" onclick="processFinalSale()">
+                <i class="fa-solid fa-check-circle"></i> Complete Checkout
+            </button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="product-modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 id="product-modal-title">Add New Product</h3>
+                <button class="modal-close" onclick="closeModal('product-modal')">&times;</button>
+            </div>
+
+            <form id="product-form" onsubmit="saveProduct(event)" style="display: flex; flex-direction: column; gap: 10px;">
+                <input type="hidden" id="p-form-id">
+                
+                <div>
+                    <label style="font-size: 12px; color: var(--text-muted);">Product Name</label>
+                    <input type="text" id="p-form-name" class="text-input" required placeholder="e.g. Gold Gym Membership">
+                </div>
+
+                <div style="display: flex; gap: 8px;">
+                    <div style="flex: 1;">
+                        <label style="font-size: 12px; color: var(--text-muted);">Category</label>
+                        <select id="p-form-cat" class="select-input" required>
+                            <option value="Memberships">Memberships</option>
+                            <option value="PT Sessions">PT Sessions</option>
+                            <option value="Beverages">Beverages</option>
+                            <option value="Apparel">Apparel</option>
+                            <option value="Services">Services</option>
+                        </select>
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="font-size: 12px; color: var(--text-muted);">Stock Qty</label>
+                        <input type="number" id="p-form-stock" class="text-input" required min="0" value="999">
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 8px;">
+                    <div style="flex: 1;">
+                        <label style="font-size: 12px; color: var(--text-muted);">Selling Price (RM)</label>
+                        <input type="number" step="0.01" id="p-form-price" class="text-input" required min="0" placeholder="0.00">
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="font-size: 12px; color: var(--text-muted);">Cost Price (RM)</label>
+                        <input type="number" step="0.01" id="p-form-cost" class="text-input" required min="0" placeholder="0.00">
+                    </div>
+                </div>
+
+                <div>
+                    <label style="font-size: 12px; color: var(--text-muted);">PT Commission Rate</label>
+                    <input type="number" id="p-form-comm" class="text-input" min="0" max="100" value="15" placeholder="15">
+                </div>
+
+                <button type="submit" class="btn btn-gold" style="margin-top: 8px;">Save Product</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="receipt-modal">
+        <div class="modal-box" style="max-width: 350px; padding: 14px;">
+            <div class="modal-header" style="border: none; padding-bottom: 0;">
+                <h3 style="font-size: 14px;">Receipt Preview</h3>
+                <button class="modal-close" onclick="closeModal('receipt-modal')">&times;</button>
+            </div>
+
+            <div class="receipt-paper" id="printable-receipt">
+                <div class="r-center" style="margin-bottom: 6px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 170 150" style="width: 32px; height: auto;">
+                        <path d="M 118 18 L 18 18 L 18 132 L 138 132 L 138 42" fill="none" stroke="#000" stroke-width="9" stroke-linecap="square"/>
+                        <rect x="126" y="10" width="14" height="14" fill="#000" />
+                        <rect x="71" y="44" width="14" height="14" fill="#000" />
+                        <rect x="71" y="66" width="14" height="48" fill="#000" />
+                    </svg>
+                </div>
+                <div class="r-center r-bold" style="font-size: 15px;">INNOVATION FITNESS</div>
+                <div class="r-center" style="font-size: 10px; margin-top: 2px;">Premium Fitness & Training Center</div>
+                <div class="r-center" style="font-size: 10px;">Tel: 09-7461392</div>
+                <div class="r-center" style="font-size: 10px;">Mobile: 010-2505902</div>
+                
+                <div class="r-line"></div>
+                <div class="r-flex"><span>Receipt ID:</span><span id="rcpt-id" class="r-bold">INV-1001</span></div>
+                <div class="r-flex"><span>Date:</span><span id="rcpt-date">22/07/2026</span></div>
+                <div class="r-flex"><span>Customer:</span><span id="rcpt-customer">Guest</span></div>
+                <div class="r-flex"><span>Trainer:</span><span id="rcpt-trainer">N/A</span></div>
+                
+                <div class="r-line"></div>
+                <div id="rcpt-items-list" style="display: flex; flex-direction: column; gap: 4px;"></div>
+                
+                <div class="r-line"></div>
+                <div class="r-flex"><span>Subtotal:</span><span id="rcpt-subtotal">RM 0.00</span></div>
+                <div class="r-flex r-bold" style="font-size: 13px; margin-top: 4px;">
+                    <span>TOTAL:</span><span id="rcpt-total">RM 0.00</span>
+                </div>
+                <div class="r-flex" style="margin-top: 4px;"><span>Payment:</span><span id="rcpt-method">Cash</span></div>
+                
+                <div class="r-line"></div>
+                <div class="r-center" style="margin-top: 6px;">THANK YOU FOR TRAINING WITH US!</div>
+                <div class="r-center" style="font-size: 9px; margin-top: 2px;">No Refunds on Memberships & Supplements</div>
+            </div>
+
+            <div style="display: flex; gap: 8px; margin-top: 8px;">
+                <button class="btn btn-outline" style="flex: 1;" onclick="closeModal('receipt-modal')">Close</button>
+                <button class="btn btn-gold" style="flex: 1;" onclick="window.print()">
+                    <i class="fa-solid fa-print"></i> Print
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="custom-price-modal">
+        <div class="modal-box" style="max-width: 360px;">
+            <div class="modal-header">
+                <h3 id="custom-price-title">Set Custom Amount</h3>
+                <button class="modal-close" onclick="closeModal('custom-price-modal')">&times;</button>
+            </div>
+            <form onsubmit="confirmCustomPrice(event)" style="display: flex; flex-direction: column; gap: 12px; margin-top: 6px;">
+                <div>
+                    <label style="font-size: 12px; color: var(--text-muted);">Enter Price Amount (RM)</label>
+                    <input type="number" step="0.01" min="0.01" id="custom-price-input" class="text-input" style="font-size: 18px; font-weight: 800; padding: 10px; color: var(--gold-light);" required placeholder="0.00">
+                </div>
+                <button type="submit" class="btn btn-gold" style="width: 100%;">
+                    <i class="fa-solid fa-plus"></i> Add To Order
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="app-alert-modal">
+        <div class="modal-box" style="max-width: 340px; text-align: center;">
+            <div style="font-size: 28px; color: var(--warning); margin-bottom: 8px;">
+                <i class="fa-solid fa-circle-info"></i>
+            </div>
+            <p id="app-alert-msg" style="font-size: 13px; color: var(--text-main); margin-bottom: 14px;"></p>
+            <button class="btn btn-gold" style="width: 100%;" onclick="closeModal('app-alert-modal')">OK</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="membership-price-modal">
+        <div class="modal-box" style="max-width: 360px;">
+            <div class="modal-header">
+                <h3 id="membership-modal-title">Select Rate / Option</h3>
+                <button class="modal-close" onclick="closeModal('membership-price-modal')">&times;</button>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 6px;">
+                <p style="font-size: 12px; color: var(--text-muted);">Choose applicable pricing rate or custom amount:</p>
+                <div id="membership-price-options-container" style="display: flex; flex-direction: column; gap: 8px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="db-settings-modal">
+        <div class="modal-box" style="max-width: 440px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-database" style="color: var(--gold-primary);"></i> Supabase Backend Connection</h3>
+                <button class="modal-close" onclick="closeModal('db-settings-modal')">&times;</button>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 6px;">
+                <p style="font-size: 12px; color: var(--text-muted);">Connect your Supabase project to enable cloud database sync across devices.</p>
+                
+                <div>
+                    <label style="font-size: 12px; color: var(--text-muted);">Supabase Project URL</label>
+                    <input type="text" id="db-url-input" class="text-input" placeholder="https://your-project.supabase.co">
+                </div>
+
+                <div>
+                    <label style="font-size: 12px; color: var(--text-muted);">Supabase Anon Key (Public API Key)</label>
+                    <input type="password" id="db-key-input" class="text-input" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
+                    <button class="btn btn-gold" onclick="saveDbCredentials()">
+                        <i class="fa-solid fa-plug"></i> Save & Connect Database
+                    </button>
+                    <button class="btn btn-outline" onclick="seedDefaultDataToSupabase()" style="border-color: var(--gold-primary); color: var(--gold-light);">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> Seed Default Data to Supabase
+                    </button>
+                    <button class="btn btn-outline" onclick="disconnectDb()" style="color: var(--danger); border-color: rgba(239, 68, 68, 0.3);">
+                        Disconnect / Use Local Storage
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* HARDCODED SUPABASE CONNECTION PARAMETERS */
+        const HARDCODED_SUPABASE_URL = "https://ezajfhciwjsrsfihxtyt.supabase.co"; 
+        const HARDCODED_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6YWpmaGNpd2pzcnNmaWh4dHl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3MDgzMDUsImV4cCI6MjEwMDI4NDMwNX0.2V_KHB6vJsxSTzbWGbsLYyr-bQqvIQD-UW2b9bWTkrc";
+
+        const STORAGE_KEY_PRODUCTS = 'IF_GYM_PRODUCTS_V2';
+        const STORAGE_KEY_SALES = 'IF_GYM_SALES_V2';
+        const STORAGE_KEY_TRAINERS = 'IF_GYM_TRAINERS_V2';
+        const STORAGE_KEY_SUPABASE_URL = 'IF_GYM_SUPABASE_URL';
+        const STORAGE_KEY_SUPABASE_ANON_KEY = 'IF_GYM_SUPABASE_ANON_KEY';
+        const STORAGE_KEY_SESSION_CASHIER = 'IF_GYM_SESSION_CASHIER';
+        const STORAGE_KEY_SESSION_DATE = 'IF_GYM_SESSION_DATE';
+
+        const defaultTrainers = [
+            { name: 'Justin', commissionRate: 60 },
+            { name: 'Jack', commissionRate: 60 },
+            { name: 'Long', commissionRate: 60 },
+            { name: 'Paul', commissionRate: 60 },
+            { name: 'Lok', commissionRate: 60 },
+            { name: 'Louis', commissionRate: 60 },
+            { name: 'Layla', commissionRate: 60 }
+        ];
+
+        const defaultProducts = [
+            { id: 'P01', name: 'Walk-In', category: 'Services', price: 10.00, cost: 0, stock: 999, comm: 0 },
+            { id: 'P02', name: '1x PT Session', category: 'PT Sessions', price: 0, cost: 0, stock: 999, comm: 60, isCustomPrice: true },
+            { id: 'P03', name: '10x PT Session Package', category: 'PT Sessions', price: 852.80, prices: [852.80, 1352.00], allowCustom: true, cost: 0, stock: 999, comm: 60 },
+            { id: 'P04', name: '20x PT Session Package', category: 'PT Sessions', price: 1601.60, prices: [1601.60, 2288.00], allowCustom: true, cost: 0, stock: 999, comm: 60 },
+            { id: 'P05', name: '30x PT Session Package', category: 'PT Sessions', price: 2028.20, prices: [2028.20, 2808.00, 1808.00], allowCustom: true, cost: 0, stock: 999, comm: 60 },
+            { id: 'P06', name: '1 Month Access Membership', category: 'Memberships', price: 160.00, prices: [160.00, 150.00, 105.00], cost: 0, stock: 999, comm: 0 },
+            { id: 'P07', name: '3 Months Access Membership', category: 'Memberships', price: 435.00, prices: [435.00, 391.50], cost: 0, stock: 999, comm: 0 },
+            { id: 'P08', name: '6 Months Access Membership', category: 'Memberships', price: 786.00, prices: [786.00, 668.10], cost: 0, stock: 999, comm: 0 },
+            { id: 'P09', name: '12 Months Access Membership', category: 'Memberships', price: 1320.00, prices: [1320.00, 1056.00], cost: 0, stock: 999, comm: 0 },
+            { id: 'P10', name: 'Mineral Water', category: 'Beverages', price: 1.00, cost: 0.50, stock: 100, comm: 0 },
+            { id: 'P11', name: 'Mineral Water 1.5L', category: 'Beverages', price: 2.50, cost: 1.20, stock: 50, comm: 0 },
+            { id: 'P12', name: '100Plus', category: 'Beverages', price: 2.50, cost: 1.50, stock: 60, comm: 0 },
+            { id: 'P13', name: 'ExtraJoss', category: 'Beverages', price: 0.60, cost: 0.30, stock: 100, comm: 0 },
+            { id: 'P14', name: 'Oatside', category: 'Beverages', price: 3.50, cost: 2.00, stock: 40, comm: 0 },
+            { id: 'P15', name: 'Coffee', category: 'Beverages', price: 6.00, cost: 3.00, stock: 30, comm: 0 },
+            { id: 'P16', name: 'T-Shirt', category: 'Apparel', price: 35.00, cost: 18.00, stock: 25, comm: 0 },
+            { id: 'P17', name: 'Towel', category: 'Apparel', price: 2.00, cost: 1.00, stock: 50, comm: 0 },
+            { id: 'P18', name: 'Others', category: 'Services', price: 0, cost: 0, stock: 999, comm: 0, isCustomPrice: true }
+        ];
+
+        // Single Admin user with passcode 020999
+        const defaultUsers = [
+            { pin: '020999', name: 'Admin' }
+        ];
+
+        // State variables
+        let products = JSON.parse(localStorage.getItem(STORAGE_KEY_PRODUCTS)) || defaultProducts;
+        let sales = JSON.parse(localStorage.getItem(STORAGE_KEY_SALES)) || [];
+        let trainers = JSON.parse(localStorage.getItem(STORAGE_KEY_TRAINERS)) || defaultTrainers;
+
+        let cart = [];
+        let selectedCategory = 'ALL';
+        let selectedPayMethod = 'Cash';
+        let reportPeriod = 'weekly';
+        let salesChartInstance = null;
+        let targetCustomProduct = null;
+        let targetMembershipProduct = null;
+
+        let activeCashier = null;
+        let enteredPin = "";
+
+        // Supabase Client Instance
+        let supabaseClient = null;
+
+        /**
+         * Calculates the actual PT Session Fee and the portion allocated to "Others".
+         */
+        function getPtPackageBreakdown(price) {
+            const p = Math.round(price * 100) / 100;
+            if (p === 852.80) return { ptFee: 720.00, othersFee: 132.80 };
+            if (p === 1601.60) return { ptFee: 1340.00, othersFee: 261.60 };
+            if (p === 2028.20) return { ptFee: 1650.00, othersFee: 378.20 };
+            if (p === 1352.00) return { ptFee: 1200.00, othersFee: 152.00 };
+            if (p === 2288.00) return { ptFee: 2000.00, othersFee: 288.00 };
+            if (p === 2808.00) return { ptFee: 2400.00, othersFee: 408.00 };
+            if (p === 1808.00) return { ptFee: 1650.00, othersFee: 158.00 };
+            return { ptFee: p, othersFee: 0 };
+        }
+
+        function getTrainerTierRate(totalSales) {
+            const val = parseFloat(totalSales) || 0;
+            if (val >= 11500) return 0.73;
+            if (val >= 10500) return 0.69;
+            if (val >= 9900) return 0.67;
+            if (val >= 9000) return 0.645;
+            if (val >= 8200) return 0.62;
+            return 0.60;
+        }
+
+        // Helper to parse DD/MM/YYYY HH:MM:SS string to Date object
+        function parseSaleDate(dateStr) {
+            if (!dateStr) return new Date(0);
+            const parts = dateStr.split(' ');
+            if (!parts[0]) return new Date(0);
+            const dParts = parts[0].split('/');
+            if (dParts.length < 3) return new Date(0);
+            const day = parseInt(dParts[0], 10);
+            const month = parseInt(dParts[1], 10) - 1;
+            const year = parseInt(dParts[2], 10);
+            let hours = 0, minutes = 0, seconds = 0;
+            if (parts[1]) {
+                const tParts = parts[1].split(':');
+                hours = parseInt(tParts[0], 10) || 0;
+                minutes = parseInt(tParts[1], 10) || 0;
+                seconds = parseInt(tParts[2], 10) || 0;
+            }
+            return new Date(year, month, day, hours, minutes, seconds);
+        }
+
+        // Ensure PT Packages in local memory get updated with multi-rate price options
+        function checkPtPackageOverrides() {
+            const ptUpdates = {
+                'P03': { prices: [852.80, 1352.00], allowCustom: true },
+                'P04': { prices: [1601.60, 2288.00], allowCustom: true },
+                'P05': { prices: [2028.20, 2808.00, 1808.00], allowCustom: true }
+            };
+            products.forEach(p => {
+                if (ptUpdates[p.id]) {
+                    p.prices = ptUpdates[p.id].prices;
+                    p.allowCustom = true;
+                }
+            });
+        }
+        checkPtPackageOverrides();
+
+        function updatePinDots() {
+            const dots = document.querySelectorAll('#pin-dots-container .pin-dot');
+            dots.forEach((dot, idx) => {
+                if (idx < enteredPin.length) {
+                    dot.classList.add('filled');
+                } else {
+                    dot.classList.remove('filled');
+                }
+            });
+        }
+
+        function pressPin(digit) {
+            if (enteredPin.length < 6) {
+                enteredPin += digit;
+                updatePinDots();
+                document.getElementById('pin-error-msg').innerText = '';
+            }
+        }
+
+        function clearPin() {
+            enteredPin = "";
+            updatePinDots();
+            document.getElementById('pin-error-msg').innerText = '';
+        }
+
+        function backspacePin() {
+            if (enteredPin.length > 0) {
+                enteredPin = enteredPin.slice(0, -1);
+                updatePinDots();
+                document.getElementById('pin-error-msg').innerText = '';
+            }
+        }
+
+        async function submitPin() {
+            if (enteredPin.length === 0) return;
+
+            let matchedUser = null;
+
+            // 1. Check Supabase 'users' table if online
+            if (supabaseClient) {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('users')
+                        .select('*')
+                        .eq('pin', enteredPin)
+                        .maybeSingle();
+
+                    if (!error && data) {
+                        matchedUser = data.name;
+                    }
+                } catch (err) {
+                    console.log('Supabase PIN check offline:', err);
+                }
+            }
+
+            // 2. Fallback check for Admin passcode 020999
+            if (!matchedUser) {
+                const found = defaultUsers.find(u => u.pin === enteredPin);
+                if (found) {
+                    matchedUser = found.name;
+                }
+            }
+
+            if (matchedUser) {
+                activeCashier = matchedUser;
+                document.getElementById('header-cashier-name').innerText = activeCashier;
+
+                // Save session for the rest of today
+                localStorage.setItem(STORAGE_KEY_SESSION_CASHIER, activeCashier);
+                localStorage.setItem(STORAGE_KEY_SESSION_DATE, new Date().toDateString());
+
+                closeModal('login-modal');
+                clearPin();
+            } else {
+                document.getElementById('pin-error-msg').innerText = 'Invalid Passcode. Access Denied.';
+                clearPin();
+            }
+        }
+
+        function lockTerminal() {
+            activeCashier = null;
+            localStorage.removeItem(STORAGE_KEY_SESSION_CASHIER);
+            localStorage.removeItem(STORAGE_KEY_SESSION_DATE);
+            document.getElementById('header-cashier-name').innerText = 'Admin Passcode Required';
+            clearPin();
+            document.getElementById('login-modal').classList.add('active');
+        }
+
+        function isValidHttpUrl(string) {
+            try {
+                const url = new URL(string);
+                return url.protocol === "http:" || url.protocol === "https:";
+            } catch (_) {
+                return false;  
+            }
+        }
+
+        function initSupabase() {
+            // 1. Primary: Use hardcoded credentials if defined
+            let url = (HARDCODED_SUPABASE_URL && !HARDCODED_SUPABASE_URL.includes('your-project-id')) ? HARDCODED_SUPABASE_URL.trim() : '';
+            let key = (HARDCODED_SUPABASE_ANON_KEY && !HARDCODED_SUPABASE_ANON_KEY.includes('your-actual-anon-key')) ? HARDCODED_SUPABASE_ANON_KEY.trim() : '';
+
+            // 2. Fallback to localStorage if hardcoded values are default placeholders or empty
+            if (!url) url = localStorage.getItem(STORAGE_KEY_SUPABASE_URL) || '';
+            if (!key) key = localStorage.getItem(STORAGE_KEY_SUPABASE_ANON_KEY) || '';
+
+            // 3. Fallback to hardcoded constants if available
+            if (!url && HARDCODED_SUPABASE_URL) url = HARDCODED_SUPABASE_URL.trim();
+            if (!key && HARDCODED_SUPABASE_ANON_KEY) key = HARDCODED_SUPABASE_ANON_KEY.trim();
+
+            const badge = document.getElementById('db-status-badge');
+
+            if (url && key && isValidHttpUrl(url) && window.supabase) {
+                try {
+                    supabaseClient = window.supabase.createClient(url, key);
+                    if (badge) {
+                        badge.innerText = 'Supabase Online';
+                        badge.className = 'db-status-badge db-online';
+                    }
+                    loadDataFromSupabase();
+                } catch (e) {
+                    console.error('Supabase init error:', e);
+                    supabaseClient = null;
+                    if (badge) {
+                        badge.innerText = 'Connection Error';
+                        badge.className = 'db-status-badge db-offline';
+                    }
+                }
+            } else {
+                supabaseClient = null;
+                if (badge) {
+                    badge.innerText = 'Offline (Local)';
+                    badge.className = 'db-status-badge db-offline';
+                }
+            }
+        }
+
+        function openDbModal() {
+            document.getElementById('db-url-input').value = localStorage.getItem(STORAGE_KEY_SUPABASE_URL) || '';
+            document.getElementById('db-key-input').value = localStorage.getItem(STORAGE_KEY_SUPABASE_ANON_KEY) || '';
+            document.getElementById('db-settings-modal').classList.add('active');
+        }
+
+        function saveDbCredentials() {
+            let url = document.getElementById('db-url-input').value.trim();
+            const key = document.getElementById('db-key-input').value.trim();
+
+            if (!url || !key) {
+                showAlertModal('Please provide both Supabase URL and Anon Key.');
+                return;
+            }
+
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                url = 'https://' + url;
+            }
+
+            if (!isValidHttpUrl(url)) {
+                showAlertModal('Please enter a valid Supabase URL (e.g., https://your-project.supabase.co).');
+                return;
+            }
+
+            localStorage.setItem(STORAGE_KEY_SUPABASE_URL, url);
+            localStorage.setItem(STORAGE_KEY_SUPABASE_ANON_KEY, key);
+
+            initSupabase();
+            closeModal('db-settings-modal');
+            showAlertModal('Supabase connection parameters saved!');
+        }
+
+        function disconnectDb() {
+            localStorage.removeItem(STORAGE_KEY_SUPABASE_URL);
+            localStorage.removeItem(STORAGE_KEY_SUPABASE_ANON_KEY);
+            supabaseClient = null;
+            initSupabase();
+            closeModal('db-settings-modal');
+            showAlertModal('Disconnected from Supabase. Reverted to Local Storage.');
+        }
+
+        async function loadDataFromSupabase() {
+            if (!supabaseClient) return;
+
+            try {
+                // 1. Fetch Products
+                const { data: dbProds, error: pErr } = await supabaseClient.from('products').select('*').order('id', { ascending: true });
+                if (!pErr && dbProds && dbProds.length > 0) {
+                    products = dbProds.map(p => ({
+                        id: p.id,
+                        name: p.name,
+                        category: p.category,
+                        price: parseFloat(p.price),
+                        prices: p.prices || null,
+                        cost: parseFloat(p.cost),
+                        stock: parseInt(p.stock, 10),
+                        comm: parseFloat(p.comm),
+                        isCustomPrice: p.is_custom_price,
+                        allowCustom: p.allow_custom || false
+                    }));
+                    checkPtPackageOverrides();
+                    localStorage.setItem(STORAGE_KEY_PRODUCTS, JSON.stringify(products));
+                }
+
+                // 2. Fetch Sales
+                const { data: dbSales, error: sErr } = await supabaseClient.from('sales').select('*').order('created_at', { ascending: false });
+                if (!sErr && dbSales) {
+                    sales = dbSales.map(s => ({
+                        id: s.id,
+                        date: s.date,
+                        customer: s.customer,
+                        trainer: s.trainer,
+                        cashier: s.cashier || 'Admin',
+                        items: typeof s.items === 'string' ? JSON.parse(s.items) : s.items,
+                        subtotal: parseFloat(s.subtotal),
+                        total: parseFloat(s.total),
+                        method: s.method,
+                        trainerComm: parseFloat(s.trainer_comm)
+                    }));
+                    localStorage.setItem(STORAGE_KEY_SALES, JSON.stringify(sales));
+                }
+
+                // 3. Fetch Trainers
+                const { data: dbTrainers, error: tErr } = await supabaseClient.from('trainers').select('*');
+                if (!tErr && dbTrainers && dbTrainers.length > 0) {
+                    trainers = dbTrainers.map(t => ({
+                        name: t.name,
+                        commissionRate: parseFloat(t.commission_rate) || 60
+                    }));
+                    localStorage.setItem(STORAGE_KEY_TRAINERS, JSON.stringify(trainers));
+                }
+
+                renderPosProducts();
+                populateTrainerDropdown();
+                updateHeaderStats();
+            } catch (err) {
+                console.error('Error loading Supabase tables:', err);
+            }
+        }
+
+        async function seedDefaultDataToSupabase() {
+            if (!supabaseClient) {
+                showAlertModal('Please connect to Supabase first before seeding data.');
+                return;
+            }
+
+            try {
+                // Seed Products
+                const formattedProds = defaultProducts.map(p => ({
+                    id: p.id,
+                    name: p.name,
+                    category: p.category,
+                    price: p.price,
+                    prices: p.prices || [],
+                    cost: p.cost,
+                    stock: p.stock,
+                    comm: p.comm,
+                    is_custom_price: p.isCustomPrice || false
+                }));
+                await supabaseClient.from('products').upsert(formattedProds);
+
+                // Seed Trainers
+                const formattedTrainers = defaultTrainers.map(t => ({
+                    name: t.name,
+                    commission_rate: t.commissionRate
+                }));
+                await supabaseClient.from('trainers').upsert(formattedTrainers);
+
+                // Seed Admin User
+                await supabaseClient.from('users').upsert([
+                    { name: 'Admin', pin: '020999', role: 'admin' }
+                ]);
+
+                showAlertModal('Successfully seeded default data and Admin credentials to Supabase!');
+                loadDataFromSupabase();
+            } catch (err) {
+                console.error('Error seeding data:', err);
+                showAlertModal('Error seeding database: ' + err.message);
+            }
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
+            document.querySelectorAll('.sidebar .nav-btn').forEach(btn => btn.classList.remove('active'));
+
+            const targetSection = document.getElementById(`view-${tabId}`);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+
+            const navBtn = document.querySelector(`.sidebar .nav-btn[onclick*="'${tabId}'"]`);
+            if (navBtn) {
+                navBtn.classList.add('active');
+            }
+
+            if (tabId === 'pos') renderPosProducts();
+            if (tabId === 'products') renderProductsTable();
+            if (tabId === 'inventory') renderInventoryTable();
+            if (tabId === 'pt-commissions') renderTrainerCommissions();
+            if (tabId === 'reports') renderSalesReports();
+            if (tabId === 'history') renderHistoryTable();
+        }
+
+        function saveData() {
+            localStorage.setItem(STORAGE_KEY_PRODUCTS, JSON.stringify(products));
+            localStorage.setItem(STORAGE_KEY_SALES, JSON.stringify(sales));
+            localStorage.setItem(STORAGE_KEY_TRAINERS, JSON.stringify(trainers));
+        }
+
+        function updateHeaderStats() {
+            const now = new Date();
+            const dayPad = String(now.getDate()).padStart(2, '0');
+            const monthPad = String(now.getMonth() + 1).padStart(2, '0');
+            const todayStr = `${dayPad}/${monthPad}/${now.getFullYear()}`;
+
+            const todaySalesTotal = sales
+                .filter(s => s.date.startsWith(todayStr))
+                .reduce((sum, s) => sum + s.total, 0);
+            
+            const statEl = document.getElementById('header-today-sales');
+            if (statEl) {
+                statEl.innerText = `RM ${todaySalesTotal.toFixed(2)}`;
+            }
+        }
+
+        function updateClock() {
+            const clockEl = document.getElementById('current-time');
+            if (clockEl) {
+                const now = new Date();
+                clockEl.innerText = now.toLocaleTimeString();
+            }
+        }
+
+        function showAlertModal(msg) {
+            document.getElementById('app-alert-msg').innerText = msg;
+            document.getElementById('app-alert-modal').classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function renderPosProducts() {
+            const grid = document.getElementById('pos-products-grid');
+            if (!grid) return;
+            const search = document.getElementById('pos-search-input').value.toLowerCase();
+
+            grid.innerHTML = '';
+
+            const filtered = products.filter(p => {
+                const matchesCat = (selectedCategory === 'ALL' || p.category === selectedCategory);
+                const matchesSearch = p.name.toLowerCase().includes(search) || p.category.toLowerCase().includes(search);
+                return matchesCat && matchesSearch;
+            });
+
+            // Ensure 'Walk-In' is always placed first in the POS register grid
+            filtered.sort((a, b) => {
+                const aIsWalkIn = a.name.toLowerCase() === 'walk-in' || a.id === 'P01';
+                const bIsWalkIn = b.name.toLowerCase() === 'walk-in' || b.id === 'P01';
+                if (aIsWalkIn && !bIsWalkIn) return -1;
+                if (!aIsWalkIn && bIsWalkIn) return 1;
+                return 0;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">No items found</div>`;
+                return;
+            }
+
+            filtered.forEach(p => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                
+                const isServiceOrMembership = p.category === 'Memberships' || p.category === 'PT Sessions' || p.category === 'Services';
+                const isLowStock = p.stock < 10 && !isServiceOrMembership;
+
+                const priceDisplay = p.isCustomPrice 
+                    ? 'Custom Price' 
+                    : (p.prices ? p.prices.map(pr => `RM ${pr.toFixed(2)}`).join(' / ') + (p.allowCustom || p.category === 'PT Sessions' ? ' / Custom' : '') : `RM ${p.price.toFixed(2)}`);
+
+                card.innerHTML = `
+                    <div>
+                        <div class="cat-badge">${p.category}</div>
+                        <div class="p-name">${p.name}</div>
+                    </div>
+                    <div>
+                        <div class="p-stock ${isLowStock ? 'low' : ''}">${isServiceOrMembership ? 'Unlimited' : `Stock: ${p.stock}`}</div>
+                        <div class="p-price" style="${p.prices ? 'font-size: 11px;' : ''}">${priceDisplay}</div>
+                    </div>
+                    <div class="add-btn"><i class="fa-solid fa-plus"></i></div>
+                `;
+
+                card.onclick = () => addToCart(p);
+                grid.appendChild(card);
+            });
+        }
+
+        function filterPosCat(cat, element) {
+            selectedCategory = cat;
+            document.querySelectorAll('#pos-cat-pills .cat-pill').forEach(el => el.classList.remove('active'));
+            element.classList.add('active');
+            renderPosProducts();
+        }
+
+        function filterPosProducts() {
+            renderPosProducts();
+        }
+
+        function populateTrainerDropdown() {
+            const select = document.getElementById('cart-trainer-select');
+            if (!select) return;
+            select.innerHTML = `<option value="">-- Select Trainer --</option>`;
+            trainers.forEach(t => {
+                select.innerHTML += `<option value="${t.name}">${t.name}</option>`;
+            });
+        }
+
+        function addToCart(product) {
+            if (product.isCustomPrice && (!product.prices || product.prices.length === 0)) {
+                targetCustomProduct = product;
+                document.getElementById('custom-price-title').innerText = `Set Price: ${product.name}`;
+                document.getElementById('custom-price-input').value = '';
+                document.getElementById('custom-price-modal').classList.add('active');
+                setTimeout(() => document.getElementById('custom-price-input').focus(), 100);
+                return;
+            }
+
+            if (product.prices && product.prices.length > 0) {
+                targetMembershipProduct = product;
+                document.getElementById('membership-modal-title').innerText = product.name;
+                const container = document.getElementById('membership-price-options-container');
+                container.innerHTML = '';
+                
+                const labels = product.category === 'Memberships' 
+                    ? ['Standard Rate', 'Promo Rate', 'RM105 Special Rate']
+                    : ['Standard Rate', 'Rate Option 2', 'Rate Option 3'];
+
+                product.prices.forEach((pr, idx) => {
+                    const btn = document.createElement('button');
+                    btn.className = idx === 0 ? 'btn btn-gold' : 'btn btn-outline';
+                    btn.style.cssText = 'padding: 12px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; width: 100%;' + (idx > 0 ? ' border-color: var(--gold-primary); color: var(--gold-light);' : '');
+                    const labelText = labels[idx] || `Rate Option ${idx + 1}`;
+                    btn.innerHTML = `<span>${labelText}</span><strong style="font-size: 15px;">RM ${pr.toFixed(2)}</strong>`;
+                    btn.onclick = () => selectMembershipPrice(idx);
+                    container.appendChild(btn);
+                });
+
+                if (product.allowCustom || product.category === 'PT Sessions') {
+                    const customBtn = document.createElement('button');
+                    customBtn.className = 'btn btn-outline';
+                    customBtn.style.cssText = 'padding: 12px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; width: 100%; border: 1px dashed var(--gold-primary); color: var(--gold-light); margin-top: 4px;';
+                    customBtn.innerHTML = `<span><i class="fa-solid fa-pen-to-square" style="margin-right: 6px;"></i>Custom Amount</span><strong style="font-size: 13px;">Type Any Price</strong>`;
+                    customBtn.onclick = () => {
+                        closeModal('membership-price-modal');
+                        targetCustomProduct = product;
+                        document.getElementById('custom-price-title').innerText = `Set Price: ${product.name}`;
+                        document.getElementById('custom-price-input').value = '';
+                        document.getElementById('custom-price-modal').classList.add('active');
+                        setTimeout(() => document.getElementById('custom-price-input').focus(), 100);
+                    };
+                    container.appendChild(customBtn);
+                }
+
+                document.getElementById('membership-price-modal').classList.add('active');
+                return;
+            }
+
+            const isServiceOrMembership = product.category === 'Memberships' || product.category === 'PT Sessions' || product.category === 'Services';
+
+            if (!isServiceOrMembership && product.stock <= 0) {
+                showAlertModal('Item is out of stock!');
+                return;
+            }
+
+            const existing = cart.find(item => item.id === product.id);
+            if (existing) {
+                if (!isServiceOrMembership && existing.qty + 1 > product.stock) {
+                    showAlertModal('Cannot add more than available stock!');
+                    return;
+                }
+                existing.qty += 1;
+            } else {
+                cart.push({ ...product, qty: 1 });
+            }
+
+            renderCart();
+        }
+
+        function selectMembershipPrice(index) {
+            if (!targetMembershipProduct) return;
+            const selectedPrice = targetMembershipProduct.prices[index];
+            const isPromo = index > 0;
+            const rateLabels = targetMembershipProduct.category === 'Memberships'
+                ? ['Standard', 'Promo', 'RM105 Special']
+                : ['Rate 1', 'Rate 2', 'Rate 3'];
+            const tag = rateLabels[index] || `Rate ${index + 1}`;
+            const itemLabel = isPromo ? `${targetMembershipProduct.name} (${tag})` : targetMembershipProduct.name;
+            const itemCartId = `${targetMembershipProduct.id}_P${index}`;
+
+            const existing = cart.find(item => item.id === itemCartId);
+            if (existing) {
+                existing.qty += 1;
+            } else {
+                cart.push({
+                    ...targetMembershipProduct,
+                    id: itemCartId,
+                    name: itemLabel,
+                    price: selectedPrice,
+                    qty: 1
+                });
+            }
+
+            closeModal('membership-price-modal');
+            targetMembershipProduct = null;
+            renderCart();
+        }
+
+        function confirmCustomPrice(e) {
+            e.preventDefault();
+            const val = parseFloat(document.getElementById('custom-price-input').value);
+            if (isNaN(val) || val <= 0) return;
+
+            if (targetCustomProduct) {
+                const customCartId = `${targetCustomProduct.id}_${Date.now()}`;
+                cart.push({
+                    ...targetCustomProduct,
+                    id: customCartId,
+                    price: val,
+                    qty: 1
+                });
+                renderCart();
+                closeModal('custom-price-modal');
+                targetCustomProduct = null;
+            }
+        }
+
+        function updateCartQty(id, delta) {
+            const item = cart.find(i => i.id === id);
+            if (!item) return;
+
+            item.qty += delta;
+            if (item.qty <= 0) {
+                cart = cart.filter(i => i.id !== id);
+            }
+            renderCart();
+        }
+
+        function removeFromCart(id) {
+            cart = cart.filter(i => i.id !== id);
+            renderCart();
+        }
+
+        function clearCart() {
+            cart = [];
+            document.getElementById('cart-member-name').value = '';
+            document.getElementById('cart-trainer-select').value = '';
+            renderCart();
+        }
+
+        function renderCart() {
+            const container = document.getElementById('cart-items-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            if (cart.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; color: var(--text-muted); margin-top: 30px;">
+                        <i class="fa-solid fa-cart-flatbed" style="font-size: 28px; margin-bottom: 8px; opacity: 0.5;"></i>
+                        <div>Cart is empty</div>
+                    </div>
+                `;
+                updateCartTotals();
+                return;
+            }
+
+            cart.forEach(item => {
+                const row = document.createElement('div');
+                row.className = 'cart-item';
+                row.innerHTML = `
+                    <div class="cart-item-info">
+                        <div class="title">${item.name}</div>
+                        <div class="price">RM ${item.price.toFixed(2)} x ${item.qty}</div>
+                    </div>
+                    <div class="cart-qty-ctrl">
+                        <button class="qty-btn" onclick="updateCartQty('${item.id}', -1)">-</button>
+                        <span class="qty-num">${item.qty}</span>
+                        <button class="qty-btn" onclick="updateCartQty('${item.id}', 1)">+</button>
+                    </div>
+                    <div style="font-weight: bold; width: 60px; text-align: right; font-size: 12px; color: var(--gold-light);">
+                        RM ${(item.price * item.qty).toFixed(2)}
+                    </div>
+                    <div class="cart-item-remove" onclick="removeFromCart('${item.id}')">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </div>
+                `;
+                container.appendChild(row);
+            });
+
+            updateCartTotals();
+        }
+
+        function updateCartTotals() {
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            document.getElementById('cart-subtotal').innerText = `RM ${subtotal.toFixed(2)}`;
+            document.getElementById('cart-total').innerText = `RM ${subtotal.toFixed(2)}`;
+        }
+
+        function openPaymentModal() {
+            if (cart.length === 0) {
+                showAlertModal('Cart is empty. Add items first!');
+                return;
+            }
+
+            const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+
+            document.getElementById('pay-modal-amount').innerText = `RM ${total.toFixed(2)}`;
+            document.getElementById('cash-tendered').value = total.toFixed(2);
+            calcCashChange();
+
+            const cashCard = document.querySelectorAll('.pay-method-card')[0];
+            selectPayMethod('Cash', cashCard);
+
+            document.getElementById('payment-modal').classList.add('active');
+        }
+
+        function selectPayMethod(method, element) {
+            selectedPayMethod = method;
+            document.querySelectorAll('.pay-method-card').forEach(c => c.classList.remove('selected'));
+            if (element) element.classList.add('selected');
+
+            const cashBox = document.getElementById('cash-calculator-box');
+            const partialBox = document.getElementById('partial-calculator-box');
+
+            if (method === 'Cash') {
+                cashBox.style.display = 'flex';
+                partialBox.style.display = 'none';
+            } else if (method === 'Partial') {
+                cashBox.style.display = 'none';
+                partialBox.style.display = 'flex';
+                setupPartialDefaults();
+            } else {
+                cashBox.style.display = 'none';
+                partialBox.style.display = 'none';
+            }
+        }
+
+        function setupPartialDefaults() {
+            const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            const half = (total / 2).toFixed(2);
+            const rem = (total - parseFloat(half)).toFixed(2);
+
+            document.getElementById('partial-m1-amt').value = half;
+            document.getElementById('partial-m2-amt').value = rem;
+            updatePartialCalc();
+        }
+
+        function updatePartialCalc(changed = 'm1') {
+            const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+
+            let amt1 = parseFloat(document.getElementById('partial-m1-amt').value) || 0;
+            let amt2 = parseFloat(document.getElementById('partial-m2-amt').value) || 0;
+
+            if (changed === 'm1') {
+                amt2 = Math.max(0, total - amt1);
+                document.getElementById('partial-m2-amt').value = amt2.toFixed(2);
+            } else if (changed === 'm2') {
+                amt1 = Math.max(0, total - amt2);
+                document.getElementById('partial-m1-amt').value = amt1.toFixed(2);
+            }
+
+            const totalAllocated = amt1 + amt2;
+            const remaining = Math.max(0, total - totalAllocated);
+
+            document.getElementById('partial-total-allocated').innerText = `RM ${totalAllocated.toFixed(2)}`;
+            document.getElementById('partial-remaining-due').innerText = `RM ${remaining.toFixed(2)}`;
+            
+            if (remaining > 0.01) {
+                document.getElementById('partial-remaining-due').style.color = 'var(--danger)';
+            } else {
+                document.getElementById('partial-remaining-due').style.color = 'var(--success)';
+            }
+        }
+
+        function calcCashChange() {
+            const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            const tendered = parseFloat(document.getElementById('cash-tendered').value) || 0;
+            const change = Math.max(0, tendered - total);
+            document.getElementById('cash-change-due').innerText = `RM ${change.toFixed(2)}`;
+        }
+
+        async function processFinalSale() {
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            const total = subtotal;
+
+            let finalPayMethod = selectedPayMethod;
+
+            if (selectedPayMethod === 'Partial') {
+                const m1 = document.getElementById('partial-m1-select').value;
+                const amt1 = parseFloat(document.getElementById('partial-m1-amt').value) || 0;
+                const m2 = document.getElementById('partial-m2-select').value;
+                const amt2 = parseFloat(document.getElementById('partial-m2-amt').value) || 0;
+
+                if (m1 === m2) {
+                    showAlertModal('Please select two different payment methods for partial payment.');
+                    return;
+                }
+
+                const totalAllocated = amt1 + amt2;
+                if (Math.abs(totalAllocated - total) > 0.05) {
+                    showAlertModal(`Partial payments total (RM ${totalAllocated.toFixed(2)}) must equal Total Amount (RM ${total.toFixed(2)}).`);
+                    return;
+                }
+
+                finalPayMethod = `Partial (${m1}: RM${amt1.toFixed(2)} / ${m2}: RM${amt2.toFixed(2)})`;
+            }
+
+            const customer = document.getElementById('cart-member-name').value.trim() || 'Guest Member';
+            const trainer = document.getElementById('cart-trainer-select').value || 'N/A';
+
+            let trainerComm = 0;
+            if (trainer !== 'N/A') {
+                // Calculate trainer's total PT fee sales volume to determine tier
+                let trainerCurrentPtVolume = 0;
+                sales.filter(s => s.trainer === trainer).forEach(s => {
+                    s.items.forEach(item => {
+                        if (item.category === 'PT Sessions' || item.name.toLowerCase().includes('pt session')) {
+                            const bd = getPtPackageBreakdown(item.price);
+                            trainerCurrentPtVolume += (bd.ptFee * item.qty);
+                        }
+                    });
+                });
+
+                // Add current order PT fees
+                cart.forEach(item => {
+                    if (item.category === 'PT Sessions' || item.name.toLowerCase().includes('pt session')) {
+                        const bd = getPtPackageBreakdown(item.price);
+                        trainerCurrentPtVolume += (bd.ptFee * item.qty);
+                    }
+                });
+
+                const tierRate = getTrainerTierRate(trainerCurrentPtVolume);
+
+                // Calculate commission earned for this sale
+                cart.forEach(item => {
+                    if (item.category === 'PT Sessions' || item.name.toLowerCase().includes('pt session')) {
+                        const bd = getPtPackageBreakdown(item.price);
+                        trainerComm += (bd.ptFee * item.qty) * tierRate;
+                    }
+                });
+            }
+
+            const receiptId = `INV-${1000 + sales.length + 1}`;
+            const now = new Date();
+            const dayStr = String(now.getDate()).padStart(2, '0');
+            const monthStr = String(now.getMonth() + 1).padStart(2, '0');
+            const yearStr = now.getFullYear();
+            const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+            const dateStr = `${dayStr}/${monthStr}/${yearStr} ${timeStr}`;
+
+            const newSale = {
+                id: receiptId,
+                date: dateStr,
+                customer: customer,
+                trainer: trainer,
+                cashier: activeCashier || 'Admin',
+                items: JSON.parse(JSON.stringify(cart)),
+                subtotal: subtotal,
+                total: total,
+                method: finalPayMethod,
+                trainerComm: trainerComm
+            };
+
+            // Deduct stock
+            cart.forEach(cartItem => {
+                const p = products.find(prod => prod.id === cartItem.id);
+                if (p && p.category !== 'Memberships' && p.category !== 'PT Sessions') {
+                    p.stock = Math.max(0, p.stock - cartItem.qty);
+                    if (supabaseClient) {
+                        supabaseClient.from('products').update({ stock: p.stock }).eq('id', p.id).then();
+                    }
+                }
+            });
+
+            sales.unshift(newSale);
+            saveData();
+
+            // Sync to Supabase
+            if (supabaseClient) {
+                try {
+                    await supabaseClient.from('sales').insert({
+                        id: newSale.id,
+                        date: newSale.date,
+                        customer: newSale.customer,
+                        trainer: newSale.trainer,
+                        items: newSale.items,
+                        subtotal: newSale.subtotal,
+                        total: newSale.total,
+                        method: newSale.method,
+                        trainer_comm: newSale.trainerComm
+                    });
+                } catch (e) {
+                    console.error('Failed syncing sale to Supabase:', e);
+                }
+            }
+
+            showReceipt(newSale);
+
+            clearCart();
+            closeModal('payment-modal');
+            renderPosProducts();
+            renderHistoryTable();
+            updateHeaderStats();
+        }
+
+        function showReceipt(sale) {
+            document.getElementById('rcpt-id').innerText = sale.id;
+            document.getElementById('rcpt-date').innerText = sale.date;
+            document.getElementById('rcpt-customer').innerText = sale.customer;
+            document.getElementById('rcpt-trainer').innerText = sale.trainer;
+
+            const itemsContainer = document.getElementById('rcpt-items-list');
+            itemsContainer.innerHTML = '';
+
+            sale.items.forEach(item => {
+                const line = document.createElement('div');
+                line.className = 'r-flex';
+                line.innerHTML = `
+                    <span>${item.qty}x ${item.name.substring(0, 18)}</span>
+                    <span>RM ${(item.price * item.qty).toFixed(2)}</span>
+                `;
+                itemsContainer.appendChild(line);
+            });
+
+            document.getElementById('rcpt-subtotal').innerText = `RM ${sale.subtotal.toFixed(2)}`;
+            document.getElementById('rcpt-total').innerText = `RM ${sale.total.toFixed(2)}`;
+            document.getElementById('rcpt-method').innerText = sale.method;
+
+            document.getElementById('receipt-modal').classList.add('active');
+        }
+
+        function renderProductsTable() {
+            const tbody = document.getElementById('product-list-table');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            products.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${p.name}</strong></td>
+                    <td><span class="badge badge-gold">${p.category}</span></td>
+                    <td>RM ${p.price.toFixed(2)}</td>
+                    <td>RM ${p.cost.toFixed(2)}</td>
+                    <td>${p.stock > 900 ? 'Infinite' : p.stock}</td>
+                    <td>Tiered (60%-73%)</td>
+                    <td>
+                        <button class="btn-outline" style="padding: 4px 8px; font-size: 11px;" onclick="editProduct('${p.id}')"><i class="fa-solid fa-pen"></i></button>
+                        <button class="btn-outline" style="padding: 4px 8px; font-size: 11px; color: var(--danger);" onclick="deleteProduct('${p.id}')"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openProductModal(editId = null) {
+            const modal = document.getElementById('product-modal');
+            const title = document.getElementById('product-modal-title');
+            
+            if (editId) {
+                const p = products.find(item => item.id === editId);
+                title.innerText = 'Edit Product';
+                document.getElementById('p-form-id').value = p.id;
+                document.getElementById('p-form-name').value = p.name;
+                document.getElementById('p-form-cat').value = p.category;
+                document.getElementById('p-form-price').value = p.price;
+                document.getElementById('p-form-cost').value = p.cost;
+                document.getElementById('p-form-stock').value = p.stock;
+                document.getElementById('p-form-comm').value = p.comm || 60;
+            } else {
+                title.innerText = 'Add New Product';
+                document.getElementById('product-form').reset();
+                document.getElementById('p-form-id').value = '';
+            }
+
+            modal.classList.add('active');
+        }
+
+        async function saveProduct(e) {
+            e.preventDefault();
+            const pId = document.getElementById('p-form-id').value;
+            const name = document.getElementById('p-form-name').value.trim();
+            const category = document.getElementById('p-form-cat').value;
+            const price = parseFloat(document.getElementById('p-form-price').value) || 0;
+            const cost = parseFloat(document.getElementById('p-form-cost').value) || 0;
+            const stock = parseInt(document.getElementById('p-form-stock').value, 10) || 0;
+            const comm = parseFloat(document.getElementById('p-form-comm').value) || 60;
+
+            let updatedProd = null;
+
+            if (pId) {
+                const p = products.find(item => item.id === pId);
+                if (p) {
+                    p.name = name;
+                    p.category = category;
+                    p.price = price;
+                    p.cost = cost;
+                    p.stock = stock;
+                    p.comm = comm;
+                    updatedProd = p;
+                }
+            } else {
+                const newId = 'P' + String(products.length + 1).padStart(2, '0');
+                updatedProd = {
+                    id: newId,
+                    name: name,
+                    category: category,
+                    price: price,
+                    cost: cost,
+                    stock: stock,
+                    comm: comm
+                };
+                products.push(updatedProd);
+            }
+
+            saveData();
+
+            if (supabaseClient && updatedProd) {
+                await supabaseClient.from('products').upsert({
+                    id: updatedProd.id,
+                    name: updatedProd.name,
+                    category: updatedProd.category,
+                    price: updatedProd.price,
+                    prices: updatedProd.prices || [],
+                    cost: updatedProd.cost,
+                    stock: updatedProd.stock,
+                    comm: updatedProd.comm,
+                    is_custom_price: updatedProd.isCustomPrice || false
+                });
+            }
+
+            closeModal('product-modal');
+            renderProductsTable();
+            renderPosProducts();
+        }
+
+        function editProduct(id) {
+            openProductModal(id);
+        }
+
+        async function deleteProduct(id) {
+            products = products.filter(p => p.id !== id);
+            saveData();
+
+            if (supabaseClient) {
+                await supabaseClient.from('products').delete().eq('id', id);
+            }
+
+            renderProductsTable();
+            renderPosProducts();
+        }
+
+        function renderInventoryTable() {
+            const tbody = document.getElementById('inventory-list-table');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            let lowStockCount = 0;
+            let totalValuation = 0;
+
+            products.forEach(p => {
+                const isRetail = (p.category !== 'Memberships' && p.category !== 'PT Sessions');
+                const isLow = isRetail && p.stock < 10;
+                
+                if (isLow) lowStockCount++;
+                if (isRetail) totalValuation += (p.cost * p.stock);
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${p.name}</strong></td>
+                    <td><span class="badge badge-gold">${p.category}</span></td>
+                    <td>${isRetail ? p.stock : 'Unlimited'}</td>
+                    <td>
+                        ${isRetail ? (isLow ? `<span class="badge badge-warning">Low Stock (&lt;10)</span>` : `<span class="badge badge-success">Sufficient</span>`) : `<span class="badge badge-gold">Service Plan</span>`}
+                    </td>
+                    <td>
+                        ${isRetail ? `
+                            <div style="display: flex; gap: 4px; align-items: center; flex-wrap: nowrap;">
+                                <button class="btn-outline" style="padding: 2px 6px;" onclick="adjustStock('${p.id}', -5)">-5</button>
+                                <button class="btn-outline" style="padding: 2px 6px;" onclick="adjustStock('${p.id}', 10)">+10</button>
+                                <input type="number" min="0" id="direct-stock-${p.id}" class="text-input" style="width: 70px; padding: 2px 6px; min-height: 28px; font-size: 12px; text-align: center;" placeholder="Qty">
+                                <button class="btn btn-gold" style="padding: 2px 8px; min-height: 28px; font-size: 11px;" onclick="setDirectStock('${p.id}')">Set</button>
+                            </div>
+                        ` : 'N/A'}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('inv-total-items').innerText = products.length;
+            document.getElementById('inv-low-stock').innerText = lowStockCount;
+            document.getElementById('inv-valuation').innerText = `RM ${totalValuation.toFixed(2)}`;
+        }
+
+        async function adjustStock(id, delta) {
+            const p = products.find(item => item.id === id);
+            if (p) {
+                p.stock = Math.max(0, p.stock + delta);
+                saveData();
+
+                if (supabaseClient) {
+                    await supabaseClient.from('products').update({ stock: p.stock }).eq('id', p.id);
+                }
+
+                renderInventoryTable();
+                renderPosProducts();
+            }
+        }
+
+        async function setDirectStock(id) {
+            const inputEl = document.getElementById(`direct-stock-${id}`);
+            if (!inputEl) return;
+            const val = parseInt(inputEl.value, 10);
+            if (isNaN(val) || val < 0) {
+                showAlertModal('Please enter a valid stock quantity.');
+                return;
+            }
+            const p = products.find(item => item.id === id);
+            if (p) {
+                p.stock = val;
+                saveData();
+
+                if (supabaseClient) {
+                    await supabaseClient.from('products').update({ stock: p.stock }).eq('id', p.id);
+                }
+
+                renderInventoryTable();
+                renderPosProducts();
+            }
+        }
+
+        function renderTrainerCommissions() {
+            const tbody = document.getElementById('trainer-comm-table');
+            const kpiGrid = document.getElementById('trainer-kpis-grid');
+            const filterSelect = document.getElementById('comm-trainer-filter');
+            if (!tbody || !kpiGrid) return;
+
+            // Populate trainer filter dropdown if needed
+            if (filterSelect && filterSelect.options.length <= 1) {
+                const currentVal = filterSelect.value || 'ALL';
+                filterSelect.innerHTML = `<option value="ALL">All Trainers</option>`;
+                trainers.forEach(t => {
+                    filterSelect.innerHTML += `<option value="${t.name}">${t.name}</option>`;
+                });
+                filterSelect.value = currentVal;
+            }
+
+            const selectedTrainer = filterSelect ? filterSelect.value : 'ALL';
+
+            tbody.innerHTML = '';
+            kpiGrid.innerHTML = '';
+
+            const displayTrainers = selectedTrainer === 'ALL' 
+                ? trainers 
+                : trainers.filter(t => t.name === selectedTrainer);
+
+            displayTrainers.forEach(trainer => {
+                const trainerSales = sales.filter(s => s.trainer === trainer.name);
+
+                // Calculate trainer's cumulative PT fee sales volume
+                let totalPtSalesVolume = 0;
+                trainerSales.forEach(s => {
+                    s.items.forEach(item => {
+                        if (item.category === 'PT Sessions' || item.name.toLowerCase().includes('pt session')) {
+                            const bd = getPtPackageBreakdown(item.price);
+                            totalPtSalesVolume += (bd.ptFee * item.qty);
+                        }
+                    });
+                });
+
+                const tierRate = getTrainerTierRate(totalPtSalesVolume);
+                const tierPctStr = (tierRate * 100).toFixed(1).replace('.0', '') + '%';
+
+                // Calculate cumulative earnings based on actual PT fees and tier rate
+                let totalCommVal = 0;
+                trainerSales.forEach(s => {
+                    s.items.forEach(item => {
+                        if (item.category === 'PT Sessions' || item.name.toLowerCase().includes('pt session')) {
+                            const bd = getPtPackageBreakdown(item.price);
+                            totalCommVal += (bd.ptFee * item.qty) * tierRate;
+                        }
+                    });
+                });
+
+                const card = document.createElement('div');
+                card.className = 'kpi-card';
+                card.innerHTML = `
+                    <div class="kpi-icon"><i class="fa-solid fa-user-ninja"></i></div>
+                    <div class="kpi-info">
+                        <div style="font-size: 14px; font-weight: 700; color: var(--text-main);">${trainer.name}</div>
+                        <div class="val" style="font-size: 17px; margin-top: 2px;">RM ${totalCommVal.toFixed(2)}</div>
+                        <div class="lbl">Tier: <strong style="color: var(--gold-light);">${tierPctStr} Share</strong></div>
+                        <div class="lbl" style="margin-top: 2px;">${trainerSales.length} Sales</div>
+                    </div>
+                `;
+                kpiGrid.appendChild(card);
+            });
+
+            let ptSales = sales.filter(s => s.trainer && s.trainer !== 'N/A');
+            if (selectedTrainer !== 'ALL') {
+                ptSales = ptSales.filter(s => s.trainer === selectedTrainer);
+            }
+
+            if (ptSales.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-muted);">No trainer attributed sales logged yet.</td></tr>`;
+                return;
+            }
+
+            ptSales.forEach(s => {
+                let salePtFee = 0;
+                s.items.forEach(item => {
+                    if (item.category === 'PT Sessions' || item.name.toLowerCase().includes('pt session')) {
+                        const bd = getPtPackageBreakdown(item.price);
+                        salePtFee += (bd.ptFee * item.qty);
+                    }
+                });
+
+                // Calculate trainer's total sales volume to reflect correct historical tier
+                let trainerPtVolume = 0;
+                sales.filter(s2 => s2.trainer === s.trainer).forEach(s2 => {
+                    s2.items.forEach(item => {
+                        if (item.category === 'PT Sessions' || item.name.toLowerCase().includes('pt session')) {
+                            const bd = getPtPackageBreakdown(item.price);
+                            trainerPtVolume += (bd.ptFee * item.qty);
+                        }
+                    });
+                });
+
+                const tierRate = getTrainerTierRate(trainerPtVolume);
+                const tierRateLabel = (tierRate * 100).toFixed(1).replace('.0', '') + '% Share';
+                const trainerEarnings = salePtFee * tierRate;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${s.date}</td>
+                    <td><strong>${s.id}</strong></td>
+                    <td><span class="badge badge-gold">${s.trainer}</span></td>
+                    <td>${s.customer}</td>
+                    <td>RM ${s.total.toFixed(2)} <span style="font-size: 10px; color: var(--text-muted);">(PT Fee: RM ${salePtFee.toFixed(2)})</span></td>
+                    <td><span class="badge badge-success">${tierRateLabel}</span></td>
+                    <td style="color: var(--gold-light); font-weight: bold;">RM ${trainerEarnings.toFixed(2)}</td>
+                    <td>
+                        <button class="btn-outline" style="padding: 4px 8px; font-size: 11px;" onclick="viewHistoryReceipt('${s.id}')">
+                            <i class="fa-solid fa-receipt"></i> View Invoice
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function getDynamicChartData(period, periodSales) {
+            const now = new Date();
+            let labels = [];
+            let dataPoints = [];
+
+            if (period === 'daily') {
+                // Hourly breakdown buckets: 8 AM to 10 PM
+                labels = ['8 AM', '10 AM', '12 PM', '2 PM', '4 PM', '6 PM', '8 PM', '10 PM'];
+                dataPoints = [0, 0, 0, 0, 0, 0, 0, 0];
+
+                periodSales.forEach(s => {
+                    const parts = s.date.split(' ');
+                    if (parts.length >= 2) {
+                        const timeParts = parts[1].split(':');
+                        const hour = parseInt(timeParts[0], 10);
+                        if (!isNaN(hour)) {
+                            let idx = 0;
+                            if (hour < 9) idx = 0;
+                            else if (hour < 11) idx = 1;
+                            else if (hour < 13) idx = 2;
+                            else if (hour < 15) idx = 3;
+                            else if (hour < 17) idx = 4;
+                            else if (hour < 19) idx = 5;
+                            else if (hour < 21) idx = 6;
+                            else idx = 7;
+
+                            dataPoints[idx] += s.total;
+                        }
+                    }
+                });
+            } else if (period === 'weekly') {
+                // Last 7 days breakdown
+                const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                for (let i = 6; i >= 0; i--) {
+                    const d = new Date(now);
+                    d.setDate(now.getDate() - i);
+                    
+                    const dayLabel = dayNames[d.getDay()];
+                    const dayPad = String(d.getDate()).padStart(2, '0');
+                    const monthPad = String(d.getMonth() + 1).padStart(2, '0');
+                    
+                    labels.push(`${dayLabel} (${dayPad}/${monthPad})`);
+
+                    const fullDayStr = `${dayPad}/${monthPad}/${d.getFullYear()}`;
+                    const dayTotal = sales
+                        .filter(s => s.date.startsWith(fullDayStr))
+                        .reduce((sum, s) => sum + s.total, 0);
+
+                    dataPoints.push(dayTotal);
+                }
+            } else if (period === 'monthly') {
+                // 4 Week brackets of current month
+                labels = ['Week 1 (1-7)', 'Week 2 (8-14)', 'Week 3 (15-21)', 'Week 4 (22+)'];
+                dataPoints = [0, 0, 0, 0];
+
+                const monthPad = String(now.getMonth() + 1).padStart(2, '0');
+                const yearStr = now.getFullYear();
+                const monthFilter = `/${monthPad}/${yearStr}`;
+
+                sales.filter(s => s.date.includes(monthFilter)).forEach(s => {
+                    const parts = s.date.split(' ');
+                    if (parts[0]) {
+                        const dParts = parts[0].split('/');
+                        const dayNum = parseInt(dParts[0], 10);
+                        if (!isNaN(dayNum)) {
+                            if (dayNum <= 7) dataPoints[0] += s.total;
+                            else if (dayNum <= 14) dataPoints[1] += s.total;
+                            else if (dayNum <= 21) dataPoints[2] += s.total;
+                            else dataPoints[3] += s.total;
+                        }
+                    }
+                });
+            } else if (period === 'yearly') {
+                // 12 Months breakdown of current year
+                labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                dataPoints = new Array(12).fill(0);
+
+                const yearStr = `/${now.getFullYear()}`;
+                sales.filter(s => s.date.includes(yearStr)).forEach(s => {
+                    const parts = s.date.split(' ');
+                    if (parts[0]) {
+                        const dParts = parts[0].split('/');
+                        const mIdx = parseInt(dParts[1], 10) - 1;
+                        if (!isNaN(mIdx) && mIdx >= 0 && mIdx < 12) {
+                            dataPoints[mIdx] += s.total;
+                        }
+                    }
+                });
+            }
+
+            return { labels, dataPoints };
+        }
+
+        function changeReportPeriod(period, buttonEl) {
+            reportPeriod = period;
+            document.querySelectorAll('#view-reports .btn-outline').forEach(b => {
+                b.style.borderColor = 'var(--border-color)';
+                b.style.color = 'var(--text-muted)';
+            });
+            buttonEl.style.borderColor = 'var(--gold-primary)';
+            buttonEl.style.color = 'var(--gold-light)';
+
+            renderSalesReports();
+        }
+
+        function renderSalesReports() {
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const currentMonth = now.getMonth();
+            const todayPad = String(now.getDate()).padStart(2, '0');
+            const monthPad = String(currentMonth + 1).padStart(2, '0');
+            
+            const todayStr = `${todayPad}/${monthPad}/${currentYear}`;
+            const monthStr = `/${monthPad}/${currentYear}`;
+            const yearStr = `/${currentYear}`;
+
+            let periodSales = sales;
+            if (reportPeriod === 'daily') {
+                periodSales = sales.filter(s => s.date.startsWith(todayStr));
+            } else if (reportPeriod === 'weekly') {
+                const sevenDaysAgo = new Date(now);
+                sevenDaysAgo.setDate(now.getDate() - 6);
+                sevenDaysAgo.setHours(0,0,0,0);
+                periodSales = sales.filter(s => {
+                    const parts = s.date.split(' ');
+                    if (!parts[0]) return false;
+                    const dParts = parts[0].split('/');
+                    if (dParts.length < 3) return false;
+                    const saleDate = new Date(dParts[2], dParts[1] - 1, dParts[0]);
+                    return saleDate >= sevenDaysAgo;
+                });
+            } else if (reportPeriod === 'monthly') {
+                periodSales = sales.filter(s => s.date.includes(monthStr));
+            } else if (reportPeriod === 'yearly') {
+                periodSales = sales.filter(s => s.date.includes(yearStr));
+            }
+
+            const totalRev = periodSales.reduce((sum, s) => sum + s.total, 0);
+            const totalOrders = periodSales.length;
+            const avgOrder = totalOrders > 0 ? (totalRev / totalOrders) : 0;
+
+            document.getElementById('rep-total-revenue').innerText = `RM ${totalRev.toFixed(2)}`;
+            document.getElementById('rep-total-orders').innerText = totalOrders;
+            document.getElementById('rep-avg-order').innerText = `RM ${avgOrder.toFixed(2)}`;
+
+            // Dynamic Revenue Trend Chart Calculation
+            const { labels, dataPoints } = getDynamicChartData(reportPeriod, periodSales);
+
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            if (salesChartInstance) {
+                salesChartInstance.destroy();
+            }
+
+            salesChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Revenue (RM)',
+                        data: dataPoints,
+                        borderColor: '#d4af37',
+                        backgroundColor: 'rgba(212, 175, 55, 0.15)',
+                        fill: true,
+                        tension: 0.35,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#ffd700',
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ` Revenue: RM ${context.parsed.y.toFixed(2)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8e95a5' } },
+                        y: { 
+                            grid: { color: 'rgba(255,255,255,0.05)' }, 
+                            ticks: { 
+                                color: '#8e95a5',
+                                callback: function(value) { return 'RM ' + value; }
+                            },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // 1. Payment Method Breakdown Table
+            const payTbody = document.getElementById('rep-pay-table-body');
+            if (payTbody) {
+                let cashTotal = 0, transferTotal = 0, cardTotal = 0;
+
+                periodSales.forEach(s => {
+                    if (s.method.startsWith('Partial')) {
+                        const parts = s.method.replace('Partial (', '').replace(')', '').split(' / ');
+                        parts.forEach(p => {
+                            const [methodName, amtStr] = p.split(': RM');
+                            const amt = parseFloat(amtStr) || 0;
+                            if (methodName.includes('Cash')) cashTotal += amt;
+                            else if (methodName.includes('Online')) transferTotal += amt;
+                            else if (methodName.includes('Card') || methodName.includes('Debit')) cardTotal += amt;
+                        });
+                    } else if (s.method === 'Cash') {
+                        cashTotal += s.total;
+                    } else if (s.method === 'Online Transfer') {
+                        transferTotal += s.total;
+                    } else if (s.method.includes('Card')) {
+                        cardTotal += s.total;
+                    }
+                });
+
+                const grandTotal = cashTotal + transferTotal + cardTotal;
+
+                payTbody.innerHTML = `
+                    <tr>
+                        <td style="font-weight: 600;">ONLINE TRANSFER</td>
+                        <td style="text-align: right; font-weight: bold; color: var(--gold-light);">RM ${transferTotal.toFixed(2)}</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: 600;">CASH</td>
+                        <td style="text-align: right; font-weight: bold; color: var(--gold-light);">RM ${cashTotal.toFixed(2)}</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: 600;">CARD</td>
+                        <td style="text-align: right; font-weight: bold; color: var(--gold-light);">RM ${cardTotal.toFixed(2)}</td>
+                    </tr>
+                    <tr style="background: rgba(16, 185, 129, 0.15); border-top: 2px solid var(--success);">
+                        <td style="font-weight: 800; color: var(--success);">TOTAL (RM)</td>
+                        <td style="text-align: right; font-weight: 800; color: var(--success); font-size: 15px;">RM ${grandTotal.toFixed(2)}</td>
+                    </tr>
+                `;
+            }
+
+            // 2. Items Sold Breakdown Table
+            const itemsTbody = document.getElementById('rep-items-table-body');
+            const itemsTfoot = document.getElementById('rep-items-table-foot');
+            if (itemsTbody) {
+                const itemCategories = [
+                    { key: 'WALK IN', name: 'WALK IN', matches: (item) => item.name.toLowerCase().includes('walk-in') },
+                    { key: 'PT TRAINING', name: 'PT TRAINING', matches: (item) => item.category === 'PT Sessions' || item.name.toLowerCase().includes('pt session') },
+                    { key: 'OTHERS', name: 'OTHERS', matches: (item) => item.category === 'Services' || item.name.toLowerCase().includes('others') },
+                    { key: 'MEMBERSHIP REG.', name: 'MEMBERSHIP REG.', matches: (item) => item.category === 'Memberships' && !item.name.toLowerCase().includes('walk-in') },
+                    { key: 'MINERAL', name: 'MINERAL WATER', matches: (item) => item.name.toLowerCase() === 'mineral water' },
+                    { key: 'MINERAL 1.5L', name: 'MINERAL WATER 1.5L', matches: (item) => item.name.toLowerCase().includes('1.5l') },
+                    { key: '100PLUS', name: '100PLUS CAN', matches: (item) => item.name.toLowerCase().includes('100plus') },
+                    { key: 'EXTRAJOSS', name: 'EXTRAJOSS', matches: (item) => item.name.toLowerCase().includes('extrajoss') },
+                    { key: 'OATSIDE', name: 'OATSIDE', matches: (item) => item.name.toLowerCase().includes('oatside') },
+                    { key: 'COFFEE', name: 'COFFEE', matches: (item) => item.name.toLowerCase().includes('coffee') },
+                    { key: 'T-SHIRT', name: 'T-SHIRT', matches: (item) => item.name.toLowerCase().includes('t-shirt') },
+                    { key: 'TOWEL', name: 'TOWEL', matches: (item) => item.name.toLowerCase().includes('towel') }
+                ];
+
+                const statsMap = {};
+                itemCategories.forEach(c => {
+                    statsMap[c.key] = { name: c.name, count: 0, amount: 0 };
+                });
+
+                periodSales.forEach(s => {
+                    s.items.forEach(item => {
+                        if (item.category === 'PT Sessions' || item.name.toLowerCase().includes('pt session')) {
+                            const bd = getPtPackageBreakdown(item.price);
+                            statsMap['PT TRAINING'].count += item.qty;
+                            statsMap['PT TRAINING'].amount += (bd.ptFee * item.qty);
+                            if (bd.othersFee > 0) {
+                                statsMap['OTHERS'].count += item.qty;
+                                statsMap['OTHERS'].amount += (bd.othersFee * item.qty);
+                            }
+                        } else {
+                            let matched = false;
+                            for (const cat of itemCategories) {
+                                if (cat.key !== 'PT TRAINING' && cat.matches(item)) {
+                                    statsMap[cat.key].count += item.qty;
+                                    statsMap[cat.key].amount += (item.price * item.qty);
+                                    matched = true;
+                                    break;
+                                }
+                            }
+                            if (!matched) {
+                                statsMap['OTHERS'].count += item.qty;
+                                statsMap['OTHERS'].amount += (item.price * item.qty);
+                            }
+                        }
+                    });
+                });
+
+                itemsTbody.innerHTML = '';
+                let totalCountSum = 0;
+                let totalRmSum = 0;
+
+                itemCategories.forEach(cat => {
+                    const stat = statsMap[cat.key];
+                    totalCountSum += stat.count;
+                    totalRmSum += stat.amount;
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td style="font-weight: 600;">${stat.name}</td>
+                        <td style="text-align: center; font-weight: bold;">${stat.count}</td>
+                        <td style="text-align: right; font-weight: bold; color: var(--gold-light);">RM ${stat.amount.toFixed(2)}</td>
+                    `;
+                    itemsTbody.appendChild(tr);
+                });
+
+                if (itemsTfoot) {
+                    itemsTfoot.innerHTML = `
+                        <tr style="background: rgba(212, 175, 55, 0.12); border-top: 2px solid var(--border-color); font-weight: 800;">
+                            <td style="color: var(--gold-light);">TOTAL</td>
+                            <td style="text-align: center; color: var(--text-main); font-size: 13px;">${totalCountSum}</td>
+                            <td style="text-align: right; color: var(--gold-light); font-size: 14px;">RM ${totalRmSum.toFixed(2)}</td>
+                        </tr>
+                    `;
+                }
+            }
+
+            // 3. Trainer Breakdown Table
+            const trainerTbody = document.getElementById('rep-trainer-table-body');
+            const trainerTfoot = document.getElementById('rep-trainer-table-foot');
+            if (trainerTbody) {
+                trainerTbody.innerHTML = '';
+                let grandTodayPtTotal = 0;
+                let grandCumPtTotal = 0;
+
+                trainers.forEach(t => {
+                    // Today's actual PT fee for this trainer (for the PT Training (RM) column)
+                    let todayPtAmount = 0;
+                    const todaySalesForTrainer = sales.filter(s => s.trainer === t.name && s.date.startsWith(todayStr));
+                    todaySalesForTrainer.forEach(s => {
+                        s.items.forEach(item => {
+                            if (item.category === 'PT Sessions' || item.name.toLowerCase().includes('pt session')) {
+                                const bd = getPtPackageBreakdown(item.price);
+                                todayPtAmount += (bd.ptFee * item.qty);
+                            }
+                        });
+                    });
+
+                    // Day-to-date actual PT fee for this trainer (for the Total (RM) column)
+                    let cumPtAmount = 0;
+                    const allSalesForTrainer = sales.filter(s => s.trainer === t.name);
+                    allSalesForTrainer.forEach(s => {
+                        s.items.forEach(item => {
+                            if (item.category === 'PT Sessions' || item.name.toLowerCase().includes('pt session')) {
+                                const bd = getPtPackageBreakdown(item.price);
+                                cumPtAmount += (bd.ptFee * item.qty);
+                            }
+                        });
+                    });
+
+                    grandTodayPtTotal += todayPtAmount;
+                    grandCumPtTotal += cumPtAmount;
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td style="font-weight: 700; color: var(--text-main);">${t.name.toUpperCase()}</td>
+                        <td style="text-align: right; font-weight: bold; color: var(--gold-light);">RM ${todayPtAmount.toFixed(2)}</td>
+                        <td style="text-align: right; font-weight: bold; color: var(--gold-light);">RM ${cumPtAmount.toFixed(2)}</td>
+                    `;
+                    trainerTbody.appendChild(tr);
+                });
+
+                if (trainerTfoot) {
+                    trainerTfoot.innerHTML = `
+                        <tr style="background: rgba(212, 175, 55, 0.12); border-top: 2px solid var(--border-color); font-weight: 800;">
+                            <td style="color: var(--gold-light);">TOTAL</td>
+                            <td style="text-align: right; color: var(--gold-light); font-size: 13px;">RM ${grandTodayPtTotal.toFixed(2)}</td>
+                            <td style="text-align: right; color: var(--gold-light); font-size: 14px;">RM ${grandCumPtTotal.toFixed(2)}</td>
+                        </tr>
+                    `;
+                }
+            }
+
+            const matrixSec = document.getElementById('monthly-matrix-section');
+            if (matrixSec) {
+                if (reportPeriod === 'monthly') {
+                    matrixSec.style.display = 'block';
+                    renderMonthlyMatrixTable();
+                } else {
+                    matrixSec.style.display = 'none';
+                }
+            }
+        }
+
+        function renderMonthlyMatrixTable() {
+            const tbody = document.getElementById('rep-monthly-matrix-tbody');
+            const tfoot = document.getElementById('rep-monthly-matrix-tfoot');
+            if (!tbody || !tfoot) return;
+
+            tbody.innerHTML = '';
+            tfoot.innerHTML = '';
+
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const currentMonth = now.getMonth();
+            const monthPad = String(currentMonth + 1).padStart(2, '0');
+
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+            const totals = {
+                cash: 0, transfer: 0, card: 0, payTotal: 0,
+                walkin: 0, pt: 0, others: 0, member: 0, studio: 0, mineral: 0,
+                mineral15: 0, zero: 0, plus100: 0, dp: 0, oatside: 0, extrajoss: 0,
+                handwrap: 0, tshirt: 0, towel: 0, itemTotal: 0
+            };
+
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dayPad = String(d).padStart(2, '0');
+                const dayStr = `${dayPad}/${monthPad}/${currentYear}`;
+                const daySales = sales.filter(s => s.date.startsWith(dayStr));
+
+                let dCash = 0, dTransfer = 0, dCard = 0;
+                let dWalkin = 0, dPt = 0, dOthers = 0, dMember = 0, dStudio = 0, dMineral = 0;
+                let dMineral15 = 0, dZero = 0, dPlus100 = 0, dDp = 0, dOatside = 0, dExtrajoss = 0;
+                let dHandwrap = 0, dTshirt = 0, dTowel = 0;
+
+                daySales.forEach(s => {
+                    if (s.method.startsWith('Partial')) {
+                        const parts = s.method.replace('Partial (', '').replace(')', '').split(' / ');
+                        parts.forEach(p => {
+                            const [mName, amtStr] = p.split(': RM');
+                            const amt = parseFloat(amtStr) || 0;
+                            if (mName.includes('Cash')) dCash += amt;
+                            else if (mName.includes('Online')) dTransfer += amt;
+                            else if (mName.includes('Card') || mName.includes('Debit')) dCard += amt;
+                        });
+                    } else if (s.method === 'Cash') {
+                        dCash += s.total;
+                    } else if (s.method === 'Online Transfer') {
+                        dTransfer += s.total;
+                    } else if (s.method.includes('Card')) {
+                        dCard += s.total;
+                    }
+
+                    s.items.forEach(item => {
+                        const nameLower = item.name.toLowerCase();
+                        const itemRev = item.price * item.qty;
+
+                        if (nameLower.includes('walk-in')) {
+                            dWalkin += itemRev;
+                        } else if (item.category === 'PT Sessions' || nameLower.includes('pt session')) {
+                            const bd = getPtPackageBreakdown(item.price);
+                            dPt += (bd.ptFee * item.qty);
+                            if (bd.othersFee > 0) {
+                                dOthers += (bd.othersFee * item.qty);
+                            }
+                        } else if (item.category === 'Memberships') {
+                            dMember += itemRev;
+                        } else if (nameLower.includes('studio')) {
+                            dStudio += itemRev;
+                        } else if (nameLower === 'mineral water') {
+                            dMineral += itemRev;
+                        } else if (nameLower.includes('1.5l')) {
+                            dMineral15 += itemRev;
+                        } else if (nameLower.includes('zero')) {
+                            dZero += itemRev;
+                        } else if (nameLower.includes('100plus')) {
+                            dPlus100 += itemRev;
+                        } else if (nameLower.includes('dp')) {
+                            dDp += itemRev;
+                        } else if (nameLower.includes('oatside')) {
+                            dOatside += itemRev;
+                        } else if (nameLower.includes('extrajoss')) {
+                            dExtrajoss += itemRev;
+                        } else if (nameLower.includes('handwrap')) {
+                            dHandwrap += itemRev;
+                        } else if (nameLower.includes('t-shirt')) {
+                            dTshirt += itemRev;
+                        } else if (nameLower.includes('towel')) {
+                            dTowel += itemRev;
+                        } else {
+                            dOthers += itemRev;
+                        }
+                    });
+                });
+
+                const dPayTotal = dCash + dTransfer + dCard;
+                const dItemTotal = dWalkin + dPt + dOthers + dMember + dStudio + dMineral + dMineral15 + dZero + dPlus100 + dDp + dOatside + dExtrajoss + dHandwrap + dTshirt + dTowel;
+
+                totals.cash += dCash;
+                totals.transfer += dTransfer;
+                totals.card += dCard;
+                totals.payTotal += dPayTotal;
+
+                totals.walkin += dWalkin;
+                totals.pt += dPt;
+                totals.others += dOthers;
+                totals.member += dMember;
+                totals.studio += dStudio;
+                totals.mineral += dMineral;
+                totals.mineral15 += dMineral15;
+                totals.zero += dZero;
+                totals.plus100 += dPlus100;
+                totals.dp += dDp;
+                totals.oatside += dOatside;
+                totals.extrajoss += dExtrajoss;
+                totals.handwrap += dHandwrap;
+                totals.tshirt += dTshirt;
+                totals.towel += dTowel;
+                totals.itemTotal += dItemTotal;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="sticky-col" style="border-right: 1px solid var(--border-color); text-align: center; font-weight: 600;">${dayStr}</td>
+                    <td>${dCash > 0 ? dCash.toFixed(2) : ''}</td>
+                    <td>${dTransfer > 0 ? dTransfer.toFixed(2) : ''}</td>
+                    <td>${dCard > 0 ? dCard.toFixed(2) : ''}</td>
+                    <td style="font-weight: bold; background: rgba(212, 175, 55, 0.1); border-right: 2px solid var(--gold-primary); color: var(--gold-light);">${dPayTotal > 0 ? dPayTotal.toFixed(2) : ''}</td>
+                    <td>${dWalkin > 0 ? dWalkin.toFixed(2) : ''}</td>
+                    <td>${dPt > 0 ? dPt.toFixed(2) : ''}</td>
+                    <td>${dOthers > 0 ? dOthers.toFixed(2) : ''}</td>
+                    <td>${dMember > 0 ? dMember.toFixed(2) : ''}</td>
+                    <td>${dStudio > 0 ? dStudio.toFixed(2) : ''}</td>
+                    <td>${dMineral > 0 ? dMineral.toFixed(2) : ''}</td>
+                    <td>${dMineral15 > 0 ? dMineral15.toFixed(2) : ''}</td>
+                    <td>${dZero > 0 ? dZero.toFixed(2) : ''}</td>
+                    <td>${dPlus100 > 0 ? dPlus100.toFixed(2) : ''}</td>
+                    <td>${dDp > 0 ? dDp.toFixed(2) : ''}</td>
+                    <td>${dOatside > 0 ? dOatside.toFixed(2) : ''}</td>
+                    <td>${dExtrajoss > 0 ? dExtrajoss.toFixed(2) : ''}</td>
+                    <td>${dHandwrap > 0 ? dHandwrap.toFixed(2) : ''}</td>
+                    <td>${dTshirt > 0 ? dTshirt.toFixed(2) : ''}</td>
+                    <td>${dTowel > 0 ? dTowel.toFixed(2) : ''}</td>
+                    <td style="font-weight: bold; background: rgba(212, 175, 55, 0.1); color: var(--gold-light);">${dItemTotal > 0 ? dItemTotal.toFixed(2) : ''}</td>
+                `;
+                tbody.appendChild(tr);
+            }
+
+            tfoot.innerHTML = `
+                <tr style="background: #00bcd4; color: #000; font-size: 11px;">
+                    <td class="sticky-col" style="text-align: center; font-weight: 800; border-right: 1px solid #000; background: #00bcd4 !important; color: #000;">TOTAL</td>
+                    <td>${totals.cash.toFixed(2)}</td>
+                    <td>${totals.transfer.toFixed(2)}</td>
+                    <td>${totals.card.toFixed(2)}</td>
+                    <td style="background: #ffeb3b; color: #000; font-weight: 900; border-right: 2px solid #000;">${totals.payTotal.toFixed(2)}</td>
+                    <td>${totals.walkin.toFixed(2)}</td>
+                    <td>${totals.pt.toFixed(2)}</td>
+                    <td>${totals.others.toFixed(2)}</td>
+                    <td>${totals.member.toFixed(2)}</td>
+                    <td>${totals.studio.toFixed(2)}</td>
+                    <td>${totals.mineral.toFixed(2)}</td>
+                    <td>${totals.mineral15.toFixed(2)}</td>
+                    <td>${totals.zero.toFixed(2)}</td>
+                    <td>${totals.plus100.toFixed(2)}</td>
+                    <td>${totals.dp.toFixed(2)}</td>
+                    <td>${totals.oatside.toFixed(2)}</td>
+                    <td>${totals.extrajoss.toFixed(2)}</td>
+                    <td>${totals.handwrap.toFixed(2)}</td>
+                    <td>${totals.tshirt.toFixed(2)}</td>
+                    <td>${totals.towel.toFixed(2)}</td>
+                    <td style="background: #ffeb3b; color: #000; font-weight: 900;">${totals.itemTotal.toFixed(2)}</td>
+                </tr>
+            `;
+        }
+
+        function exportReportCSV() {
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const currentMonth = now.getMonth();
+            const monthPad = String(currentMonth + 1).padStart(2, '0');
+
+            if (reportPeriod === 'monthly') {
+                let csvContent = "data:text/csv;charset=utf-8,";
+                csvContent += "DATE,CASH,TRANSFER,CARD,PAYMENT TOTAL,WALKIN,PT,OTHERS,MEMBER,STUDIO,MINERAL,1.5L,ZERO,100PLUS,DP,OATSIDE,EXTRAJOSS,HANDWRAP,TSHIRT,TOWEL,SALES TOTAL\n";
+
+                const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+                const totals = {
+                    cash: 0, transfer: 0, card: 0, payTotal: 0,
+                    walkin: 0, pt: 0, others: 0, member: 0, studio: 0, mineral: 0,
+                    mineral15: 0, zero: 0, plus100: 0, dp: 0, oatside: 0, extrajoss: 0,
+                    handwrap: 0, tshirt: 0, towel: 0, itemTotal: 0
+                };
+
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const dayPad = String(d).padStart(2, '0');
+                    const dayStr = `${dayPad}/${monthPad}/${currentYear}`;
+                    const daySales = sales.filter(s => s.date.startsWith(dayStr));
+
+                    let dCash = 0, dTransfer = 0, dCard = 0;
+                    let dWalkin = 0, dPt = 0, dOthers = 0, dMember = 0, dStudio = 0, dMineral = 0;
+                    let dMineral15 = 0, dZero = 0, dPlus100 = 0, dDp = 0, dOatside = 0, dExtrajoss = 0;
+                    let dHandwrap = 0, dTshirt = 0, dTowel = 0;
+
+                    daySales.forEach(s => {
+                        if (s.method.startsWith('Partial')) {
+                            const parts = s.method.replace('Partial (', '').replace(')', '').split(' / ');
+                            parts.forEach(p => {
+                                const [mName, amtStr] = p.split(': RM');
+                                const amt = parseFloat(amtStr) || 0;
+                                if (mName.includes('Cash')) dCash += amt;
+                                else if (mName.includes('Online')) dTransfer += amt;
+                                else if (mName.includes('Card') || mName.includes('Debit')) dCard += amt;
+                            });
+                        } else if (s.method === 'Cash') {
+                            dCash += s.total;
+                        } else if (s.method === 'Online Transfer') {
+                            dTransfer += s.total;
+                        } else if (s.method.includes('Card')) {
+                            dCard += s.total;
+                        }
+
+                        s.items.forEach(item => {
+                            const nameLower = item.name.toLowerCase();
+                            const itemRev = item.price * item.qty;
+
+                            if (nameLower.includes('walk-in')) {
+                                dWalkin += itemRev;
+                            } else if (item.category === 'PT Sessions' || nameLower.includes('pt session')) {
+                                const bd = getPtPackageBreakdown(item.price);
+                                dPt += (bd.ptFee * item.qty);
+                                if (bd.othersFee > 0) {
+                                    dOthers += (bd.othersFee * item.qty);
+                                }
+                            } else if (item.category === 'Memberships') {
+                                dMember += itemRev;
+                            } else if (nameLower.includes('studio')) {
+                                dStudio += itemRev;
+                            } else if (nameLower === 'mineral water') {
+                                dMineral += itemRev;
+                            } else if (nameLower.includes('1.5l')) {
+                                dMineral15 += itemRev;
+                            } else if (nameLower.includes('zero')) {
+                                dZero += itemRev;
+                            } else if (nameLower.includes('100plus')) {
+                                dPlus100 += itemRev;
+                            } else if (nameLower.includes('dp')) {
+                                dDp += itemRev;
+                            } else if (nameLower.includes('oatside')) {
+                                dOatside += itemRev;
+                            } else if (nameLower.includes('extrajoss')) {
+                                dExtrajoss += itemRev;
+                            } else if (nameLower.includes('handwrap')) {
+                                dHandwrap += itemRev;
+                            } else if (nameLower.includes('t-shirt')) {
+                                dTshirt += itemRev;
+                            } else if (nameLower.includes('towel')) {
+                                dTowel += itemRev;
+                            } else {
+                                dOthers += itemRev;
+                            }
+                        });
+                    });
+
+                    const dPayTotal = dCash + dTransfer + dCard;
+                    const dItemTotal = dWalkin + dPt + dOthers + dMember + dStudio + dMineral + dMineral15 + dZero + dPlus100 + dDp + dOatside + dExtrajoss + dHandwrap + dTshirt + dTowel;
+
+                    totals.cash += dCash;
+                    totals.transfer += dTransfer;
+                    totals.card += dCard;
+                    totals.payTotal += dPayTotal;
+
+                    totals.walkin += dWalkin;
+                    totals.pt += dPt;
+                    totals.others += dOthers;
+                    totals.member += dMember;
+                    totals.studio += dStudio;
+                    totals.mineral += dMineral;
+                    totals.mineral15 += dMineral15;
+                    totals.zero += dZero;
+                    totals.plus100 += dPlus100;
+                    totals.dp += dDp;
+                    totals.oatside += dOatside;
+                    totals.extrajoss += dExtrajoss;
+                    totals.handwrap += dHandwrap;
+                    totals.tshirt += dTshirt;
+                    totals.towel += dTowel;
+                    totals.itemTotal += dItemTotal;
+
+                    csvContent += `="${dayStr}","${dCash.toFixed(2)}","${dTransfer.toFixed(2)}","${dCard.toFixed(2)}","${dPayTotal.toFixed(2)}","${dWalkin.toFixed(2)}","${dPt.toFixed(2)}","${dOthers.toFixed(2)}","${dMember.toFixed(2)}","${dStudio.toFixed(2)}","${dMineral.toFixed(2)}","${dMineral15.toFixed(2)}","${dZero.toFixed(2)}","${dPlus100.toFixed(2)}","${dDp.toFixed(2)}","${dOatside.toFixed(2)}","${dExtrajoss.toFixed(2)}","${dHandwrap.toFixed(2)}","${dTshirt.toFixed(2)}","${dTowel.toFixed(2)}","${dItemTotal.toFixed(2)}"\n`;
+                }
+
+                csvContent += `"TOTAL","${totals.cash.toFixed(2)}","${totals.transfer.toFixed(2)}","${totals.card.toFixed(2)}","${totals.payTotal.toFixed(2)}","${totals.walkin.toFixed(2)}","${totals.pt.toFixed(2)}","${totals.others.toFixed(2)}","${totals.member.toFixed(2)}","${totals.studio.toFixed(2)}","${totals.mineral.toFixed(2)}","${totals.mineral15.toFixed(2)}","${totals.zero.toFixed(2)}","${totals.plus100.toFixed(2)}","${totals.dp.toFixed(2)}","${totals.oatside.toFixed(2)}","${totals.extrajoss.toFixed(2)}","${totals.handwrap.toFixed(2)}","${totals.tshirt.toFixed(2)}","${totals.towel.toFixed(2)}","${totals.itemTotal.toFixed(2)}"\n`;
+
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", `Monthly Report ${monthPad}_${currentYear}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } else {
+                let csvContent = "data:text/csv;charset=utf-8,";
+                csvContent += "Receipt ID,Date,Customer,Trainer,Payment Method,Total (RM)\n";
+                sales.forEach(s => {
+                    csvContent += `"${s.id}","${s.date}","${s.customer}","${s.trainer}","${s.method}","${s.total.toFixed(2)}"\n`;
+                });
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", `Sales_Report_${new Date().toISOString().slice(0,10)}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }
+
+        function renderHistoryTable() {
+            const tbody = document.getElementById('history-log-table');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            if (sales.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 20px;">No transactions recorded yet.</td></tr>`;
+                return;
+            }
+
+            let filteredSales = [...sales];
+
+            // 1. Date filter check
+            const datePickerVal = document.getElementById('history-date-picker')?.value;
+            if (datePickerVal) {
+                // datePickerVal is in 'YYYY-MM-DD' format
+                const [filterYear, filterMonth, filterDay] = datePickerVal.split('-').map(Number);
+                filteredSales = filteredSales.filter(s => {
+                    const sDate = parseSaleDate(s.date);
+                    return sDate.getFullYear() === filterYear && 
+                           (sDate.getMonth() + 1) === filterMonth && 
+                           sDate.getDate() === filterDay;
+                });
+            }
+
+            // 2. Sort order check (Newest First vs Oldest First)
+            const sortOrder = document.getElementById('history-sort-order')?.value || 'desc';
+            filteredSales.sort((a, b) => {
+                const timeA = parseSaleDate(a.date).getTime();
+                const timeB = parseSaleDate(b.date).getTime();
+                return sortOrder === 'asc' ? (timeA - timeB) : (timeB - timeA);
+            });
+
+            if (filteredSales.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 20px;">No transactions found for the selected date.</td></tr>`;
+                return;
+            }
+
+            filteredSales.forEach(s => {
+                const totalItemsQty = s.items ? s.items.reduce((sum, item) => sum + item.qty, 0) : 0;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${s.id}</strong></td>
+                    <td>${s.date}</td>
+                    <td>${s.customer}</td>
+                    <td>${totalItemsQty} item(s)</td>
+                    <td><span class="badge badge-gold">${s.method}</span></td>
+                    <td style="color: var(--gold-light); font-weight: bold;">RM ${s.total.toFixed(2)}</td>
+                    <td>
+                        <button class="btn-outline" style="padding: 4px 8px; font-size: 11px;" onclick="viewHistoryReceipt('${s.id}')">
+                            <i class="fa-solid fa-receipt"></i> Receipt
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function clearHistoryDateFilter() {
+            const dp = document.getElementById('history-date-picker');
+            if (dp) dp.value = '';
+            renderHistoryTable();
+        }
+
+        function viewHistoryReceipt(id) {
+            const sale = sales.find(s => s.id === id);
+            if (sale) {
+                showReceipt(sale);
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            updateClock();
+            setInterval(updateClock, 1000);
+            initSupabase();
+            populateTrainerDropdown();
+            renderPosProducts();
+            renderCart();
+            updateHeaderStats();
+
+            // Check saved login session for today
+            const savedCashier = localStorage.getItem(STORAGE_KEY_SESSION_CASHIER);
+            const savedDate = localStorage.getItem(STORAGE_KEY_SESSION_DATE);
+            const todayStr = new Date().toDateString();
+
+            if (savedCashier && savedDate === todayStr) {
+                activeCashier = savedCashier;
+                document.getElementById('header-cashier-name').innerText = activeCashier;
+                document.getElementById('login-modal').classList.remove('active');
+            } else {
+                localStorage.removeItem(STORAGE_KEY_SESSION_CASHIER);
+                localStorage.removeItem(STORAGE_KEY_SESSION_DATE);
+                document.getElementById('login-modal').classList.add('active');
+            }
+        });
+
+        /* KEYBOARD INPUT FOR DESKTOP PIN LOGIN */
+        window.addEventListener('keydown', (e) => {
+            const loginModal = document.getElementById('login-modal');
+            if (loginModal && loginModal.classList.contains('active')) {
+                if (e.key >= '0' && e.key <= '9') {
+                    pressPin(e.key);
+                } else if (e.key === 'Backspace') {
+                    backspacePin();
+                } else if (e.key === 'Enter') {
+                    submitPin();
+                } else if (e.key === 'Escape') {
+                    clearPin();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+```
+
+### Summary of Additions
+1. **Date Picker & Sort Selector**: Included a date filter input and a sort direction dropdown in the **Transaction Log** tab header.
+2. **Chronological Sorting**: Transactions can now be ordered from **Newest First** or **Oldest First**.
+3. **Single Date Filter**: You can filter the transaction log to display receipts from a specific calendar day or click **Clear Filter** to reset.
