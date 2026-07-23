@@ -1419,19 +1419,19 @@
                         <p style="color: var(--text-muted); font-size: 13px;">View and reprint previous sales transactions</p>
                     </div>
 
-                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                         <div style="display: flex; align-items: center; gap: 6px;">
-                            <label style="font-size: 12px; color: var(--text-muted); font-weight: 500;">Filter Date:</label>
-                            <input type="date" id="history-date-picker" class="text-input" style="width: 150px; padding: 6px 10px; min-height: 36px; font-size: 12px;" onchange="renderHistoryTable()">
+                            <label style="font-size: 12px; color: var(--text-muted);">Filter Date:</label>
+                            <input type="date" id="history-date-picker" class="text-input" style="padding: 6px 10px; min-height: 36px; font-size: 12px; width: 140px;" onchange="renderHistoryTable()">
+                            <button class="btn-outline" style="padding: 6px 10px; min-height: 36px; font-size: 11px;" onclick="clearHistoryDateFilter()">Clear</button>
                         </div>
                         <div style="display: flex; align-items: center; gap: 6px;">
-                            <label style="font-size: 12px; color: var(--text-muted); font-weight: 500;">Sort Order:</label>
-                            <select id="history-sort-order" class="select-input" style="width: 150px; padding: 6px 10px; min-height: 36px; font-size: 12px;" onchange="renderHistoryTable()">
+                            <label style="font-size: 12px; color: var(--text-muted);">Sort Order:</label>
+                            <select id="history-sort-order" class="select-input" style="padding: 6px 10px; min-height: 36px; font-size: 12px; width: 130px;" onchange="renderHistoryTable()">
                                 <option value="desc">Newest First</option>
                                 <option value="asc">Oldest First</option>
                             </select>
                         </div>
-                        <button class="btn btn-outline" style="padding: 6px 12px; font-size: 12px; min-height: 36px;" onclick="clearHistoryDateFilter()">Clear Filter</button>
                     </div>
                 </div>
 
@@ -1452,6 +1452,10 @@
                     </table>
                 </div>
             </section>
+
+            <footer style="text-align: center; margin-top: 30px; padding: 16px 0 8px 0; font-size: 11px; color: var(--text-muted); border-top: 1px solid rgba(212, 175, 55, 0.1);">
+                © Innovation Fitness. All rights reserved.
+            </footer>
 
         </main>
     </div>
@@ -3770,7 +3774,6 @@
             // 1. Date filter check
             const datePickerVal = document.getElementById('history-date-picker')?.value;
             if (datePickerVal) {
-                // datePickerVal is in 'YYYY-MM-DD' format
                 const [filterYear, filterMonth, filterDay] = datePickerVal.split('-').map(Number);
                 filteredSales = filteredSales.filter(s => {
                     const sDate = parseSaleDate(s.date);
@@ -3869,9 +3872,3 @@
     </script>
 </body>
 </html>
-```
-
-### Summary of Additions
-1. **Date Picker & Sort Selector**: Included a date filter input and a sort direction dropdown in the **Transaction Log** tab header.
-2. **Chronological Sorting**: Transactions can now be ordered from **Newest First** or **Oldest First**.
-3. **Single Date Filter**: You can filter the transaction log to display receipts from a specific calendar day or click **Clear Filter** to reset.
