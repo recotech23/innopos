@@ -3097,21 +3097,24 @@ h1, h2, h3, h4, h5, h6, .brand-text {
 
                 periodSales.forEach(s => {
                     const paidAmt = s.paidAmount !== undefined ? s.paidAmount : s.total;
-                    if (s.method.startsWith('Partial')) {
+                   if (s.method && s.method.startsWith('Partial')) {
                         const parts = s.method.replace('Partial (', '').replace(')', '').split(' / ');
                         parts.forEach(p => {
                             const [methodName, amtStr] = p.split(': RM');
                             const amt = parseFloat(amtStr) || 0;
-                            if (methodName.includes('Cash')) cashTotal += amt;
-                            else if (methodName.includes('Online')) transferTotal += amt;
-                            else if (methodName.includes('Card') || methodName.includes('Debit')) cardTotal += amt;
+                            if (methodName.toLowerCase().includes('cash')) cashTotal += amt;
+                            else if (methodName.toLowerCase().includes('online')) transferTotal += amt;
+                            else if (methodName.toLowerCase().includes('card') || methodName.toLowerCase().includes('debit')) cardTotal += amt;
                         });
-                    } else if (s.method === 'Cash') {
-                        cashTotal += paidAmt;
-                    } else if (s.method === 'Online Transfer') {
-                        transferTotal += paidAmt;
-                    } else if (s.method.includes('Card')) {
-                        cardTotal += paidAmt;
+                    } else if (s.method) {
+                        const mLower = s.method.toLowerCase();
+                        if (mLower.includes('cash')) {
+                            cashTotal += paidAmt;
+                        } else if (mLower.includes('online') || mLower.includes('transfer')) {
+                            transferTotal += paidAmt;
+                        } else if (mLower.includes('card') || mLower.includes('debit')) {
+                            cardTotal += paidAmt;
+                        }
                     }
                 });
 
