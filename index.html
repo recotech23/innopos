@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>INNOVATION FITNESS - Point of Sale & Supabase DB</title>
 
-<!-- Web App Favicon & Icon -->
+    <!-- Web App Favicon & Icon -->
     <link rel="icon" type="image/png" href="https://arleta.site/interactivelink/5674/innovation_logo_FA-removebg-preview.png">
     <link rel="apple-touch-icon" href="https://arleta.site/interactivelink/5674/innovation_logo_FA-removebg-preview.png">
 
-<!-- Google Fonts -->
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -17,10 +17,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- Chart.js for Dynamic Reports -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <!-- html2canvas for Report Screenshot Capture -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <!-- Supabase JS Client SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<style>
+    <style>
         :root {
             --bg-primary: #0a0b0d;
             --bg-secondary: #12141a;
@@ -29,30 +31,30 @@
             --border-color: rgba(212, 175, 55, 0.2);
             --border-highlight: rgba(212, 175, 55, 0.6);
 
---gold-primary: #d4af37;
+            --gold-primary: #d4af37;
             --gold-light: #f3e5ab;
             --gold-dark: #aa771c;
             --gold-gradient: linear-gradient(135deg, #BF953F 0%, #FCF6BA 25%, #B38728 50%, #FBF5B7 75%, #AA771C 100%);
             --gold-gradient-button: linear-gradient(135deg, #d4af37 0%, #aa771c 100%);
             --gold-glow: rgba(212, 175, 55, 0.25);
 
---text-main: #f0f2f5;
+            --text-main: #f0f2f5;
             --text-muted: #8e95a5;
             --text-gold: #e5c158;
 
---danger: #ef4444;
+            --danger: #ef4444;
             --success: #10b981;
             --warning: #f59e0b;
             --info: #3b82f6;
 
---radius-sm: 6px;
+            --radius-sm: 6px;
             --radius-md: 10px;
             --radius-lg: 16px;
             --shadow-gold: 0 4px 20px rgba(212, 175, 55, 0.15);
             --shadow-card: 0 8px 30px rgba(0, 0, 0, 0.5);
         }
 
-* {
+        * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
@@ -60,7 +62,7 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-body {
+        body {
             background-color: var(--bg-primary);
             color: var(--text-main);
             min-height: 100vh;
@@ -69,11 +71,11 @@ body {
             overflow-x: hidden;
         }
 
-h1, h2, h3, h4, h5, h6, .brand-text {
+        h1, h2, h3, h4, h5, h6, .brand-text {
             font-family: 'Montserrat', sans-serif;
         }
 
-::-webkit-scrollbar {
+        ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
         }
@@ -88,7 +90,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             background: var(--gold-dark);
         }
 
-.app-header {
+        .app-header {
             background: var(--bg-secondary);
             border-bottom: 1px solid var(--border-color);
             padding: 10px 20px;
@@ -102,13 +104,13 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             gap: 10px;
         }
 
-.brand-logo {
+        .brand-logo {
             display: flex;
             align-items: center;
             gap: 12px;
         }
 
-.brand-logo-svg {
+        .brand-logo-svg {
             height: 42px;
             width: auto;
             filter: drop-shadow(0 0 8px var(--gold-glow));
@@ -116,11 +118,11 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             transition: transform 0.2s ease;
         }
 
-.brand-logo:hover .brand-logo-svg {
+        .brand-logo:hover .brand-logo-svg {
             transform: scale(1.04);
         }
 
-.brand-logo .title {
+        .brand-logo .title {
             font-size: 18px;
             font-weight: 800;
             letter-spacing: 1.2px;
@@ -129,21 +131,21 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             -webkit-text-fill-color: transparent;
         }
 
-.brand-logo .subtitle {
+        .brand-logo .subtitle {
             font-size: 9px;
             letter-spacing: 2px;
             color: var(--text-muted);
             text-transform: uppercase;
         }
 
-.header-stats {
+        .header-stats {
             display: flex;
             align-items: center;
             gap: 10px;
             flex-wrap: wrap;
         }
 
-.stat-pill {
+        .stat-pill {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
             padding: 6px 12px;
@@ -157,15 +159,15 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             transition: all 0.2s;
         }
 
-.stat-pill:hover {
+        .stat-pill:hover {
             border-color: var(--gold-primary);
         }
 
-.stat-pill i {
+        .stat-pill i {
             color: var(--gold-primary);
         }
 
-.db-status-badge {
+        .db-status-badge {
             font-size: 10px;
             font-weight: 700;
             padding: 2px 8px;
@@ -175,14 +177,14 @@ h1, h2, h3, h4, h5, h6, .brand-text {
         .db-online { background: rgba(16, 185, 129, 0.2); color: var(--success); border: 1px solid var(--success); }
         .db-offline { background: rgba(245, 158, 11, 0.2); color: var(--warning); border: 1px solid var(--warning); }
 
-.app-container {
+        .app-container {
             display: flex;
             flex: 1;
             height: calc(100vh - 65px);
             overflow: hidden;
         }
 
-.sidebar {
+        .sidebar {
             width: 230px;
             background: var(--bg-secondary);
             border-right: 1px solid var(--border-color);
@@ -193,7 +195,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             flex-shrink: 0;
         }
 
-.nav-btn {
+        .nav-btn {
             display: flex;
             align-items: center;
             gap: 12px;
@@ -212,30 +214,30 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             user-select: none;
         }
 
-.nav-btn i {
+        .nav-btn i {
             font-size: 16px;
             width: 20px;
             text-align: center;
         }
 
-.nav-btn:hover {
+        .nav-btn:hover {
             color: var(--text-main);
             background: rgba(212, 175, 55, 0.05);
             border-color: rgba(212, 175, 55, 0.1);
         }
 
-.nav-btn.active {
+        .nav-btn.active {
             color: #000;
             background: var(--gold-gradient);
             font-weight: 700;
             box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
         }
 
-.nav-btn.active i {
+        .nav-btn.active i {
             color: #000;
         }
 
-.content-area {
+        .content-area {
             flex: 1;
             background: var(--bg-primary);
             overflow-y: auto;
@@ -243,28 +245,28 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             position: relative;
         }
 
-.view-section {
+        .view-section {
             display: none;
             animation: fadeIn 0.25s ease-in-out;
         }
 
-.view-section.active {
+        .view-section.active {
             display: block;
         }
 
-@keyframes fadeIn {
+        @keyframes fadeIn {
             from { opacity: 0; transform: translateY(6px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-.pos-grid {
+        .pos-grid {
             display: grid;
             grid-template-columns: 1fr 380px;
             gap: 20px;
             height: calc(100vh - 105px);
         }
 
-.pos-products-container {
+        .pos-products-container {
             display: flex;
             flex-direction: column;
             gap: 16px;
@@ -272,7 +274,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             padding-right: 6px;
         }
 
-.search-category-bar {
+        .search-category-bar {
             display: flex;
             flex-direction: column;
             gap: 12px;
@@ -283,12 +285,12 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             z-index: 10;
         }
 
-.search-box {
+        .search-box {
             position: relative;
             width: 100%;
         }
 
-.search-box input {
+        .search-box input {
             width: 100%;
             background: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -301,12 +303,12 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             min-height: 44px;
         }
 
-.search-box input:focus {
+        .search-box input:focus {
             border-color: var(--gold-primary);
             box-shadow: 0 0 10px var(--gold-glow);
         }
 
-.search-box i {
+        .search-box i {
             position: absolute;
             left: 14px;
             top: 50%;
@@ -314,7 +316,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             color: var(--text-muted);
         }
 
-.category-pills {
+        .category-pills {
             display: flex;
             gap: 8px;
             overflow-x: auto;
@@ -322,7 +324,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             -webkit-overflow-scrolling: touch;
         }
 
-.cat-pill {
+        .cat-pill {
             padding: 10px 16px;
             background: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -338,19 +340,19 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             align-items: center;
         }
 
-.cat-pill.active, .cat-pill:hover {
+        .cat-pill.active, .cat-pill:hover {
             background: var(--border-color);
             color: var(--gold-light);
             border-color: var(--gold-primary);
         }
 
-.products-grid {
+        .products-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
             gap: 14px;
         }
 
-.product-card {
+        .product-card {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-md);
@@ -367,14 +369,14 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             user-select: none;
         }
 
-.product-card:hover, .product-card:active {
+        .product-card:hover, .product-card:active {
             transform: translateY(-2px);
             border-color: var(--gold-primary);
             box-shadow: var(--shadow-gold);
             background: var(--bg-card-hover);
         }
 
-.product-card .cat-badge {
+        .product-card .cat-badge {
             font-size: 10px;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -382,30 +384,30 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             font-weight: 700;
         }
 
-.product-card .p-name {
+        .product-card .p-name {
             font-size: 14px;
             font-weight: 600;
             line-height: 1.3;
             color: var(--text-main);
         }
 
-.product-card .p-stock {
+        .product-card .p-stock {
             font-size: 11px;
             color: var(--text-muted);
         }
 
-.product-card .p-stock.low {
+        .product-card .p-stock.low {
             color: var(--warning);
             font-weight: 600;
         }
 
-.product-card .p-price {
+        .product-card .p-price {
             font-size: 15px;
             font-weight: 700;
             color: var(--gold-light);
         }
 
-.product-card .add-btn {
+        .product-card .add-btn {
             position: absolute;
             bottom: 10px;
             right: 10px;
@@ -422,7 +424,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             box-shadow: 0 2px 8px rgba(0,0,0,0.4);
         }
 
-.cart-panel {
+        .cart-panel {
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-lg);
@@ -432,7 +434,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             overflow: hidden;
         }
 
-.cart-header {
+        .cart-header {
             padding: 14px 16px;
             border-bottom: 1px solid var(--border-color);
             display: flex;
@@ -441,7 +443,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             background: var(--bg-card);
         }
 
-.cart-header h3 {
+        .cart-header h3 {
             font-size: 15px;
             color: var(--gold-light);
             display: flex;
@@ -449,7 +451,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             gap: 8px;
         }
 
-.cart-details-inputs {
+        .cart-details-inputs {
             padding: 12px;
             background: rgba(0,0,0,0.2);
             border-bottom: 1px solid var(--border-color);
@@ -458,12 +460,12 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             gap: 8px;
         }
 
-.form-row {
+        .form-row {
             display: flex;
             gap: 8px;
         }
 
-.select-input, .text-input {
+        .select-input, .text-input {
             width: 100%;
             background: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -475,11 +477,11 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             min-height: 44px;
         }
 
-.select-input:focus, .text-input:focus {
+        .select-input:focus, .text-input:focus {
             border-color: var(--gold-primary);
         }
 
-.cart-items-list {
+        .cart-items-list {
             flex: 1;
             overflow-y: auto;
             padding: 12px;
@@ -489,7 +491,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             -webkit-overflow-scrolling: touch;
         }
 
-.cart-item {
+        .cart-item {
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -500,21 +502,21 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             gap: 8px;
         }
 
-.cart-item-info {
+        .cart-item-info {
             flex: 1;
         }
 
-.cart-item-info .title {
+        .cart-item-info .title {
             font-size: 13px;
             font-weight: 600;
         }
 
-.cart-item-info .price {
+        .cart-item-info .price {
             font-size: 12px;
             color: var(--gold-light);
         }
 
-.cart-qty-ctrl {
+        .cart-qty-ctrl {
             display: flex;
             align-items: center;
             gap: 4px;
@@ -523,7 +525,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             padding: 2px 4px;
         }
 
-.qty-btn {
+        .qty-btn {
             background: transparent;
             border: none;
             color: var(--gold-primary);
@@ -537,14 +539,14 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             justify-content: center;
         }
 
-.qty-num {
+        .qty-num {
             font-size: 13px;
             font-weight: 600;
             min-width: 20px;
             text-align: center;
         }
 
-.cart-item-remove {
+        .cart-item-remove {
             color: var(--danger);
             cursor: pointer;
             padding: 8px;
@@ -552,7 +554,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             opacity: 0.8;
         }
 
-.cart-summary {
+        .cart-summary {
             padding: 14px 16px;
             background: var(--bg-card);
             border-top: 1px solid var(--border-color);
@@ -561,14 +563,14 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             gap: 8px;
         }
 
-.summary-row {
+        .summary-row {
             display: flex;
             justify-content: space-between;
             font-size: 13px;
             color: var(--text-muted);
         }
 
-.summary-row.total {
+        .summary-row.total {
             font-size: 18px;
             font-weight: 800;
             color: var(--text-main);
@@ -577,18 +579,18 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             margin-top: 4px;
         }
 
-.summary-row.total .amt {
+        .summary-row.total .amt {
             color: var(--gold-light);
         }
 
-.cart-actions {
+        .cart-actions {
             display: grid;
             grid-template-columns: 1fr 2fr;
             gap: 10px;
             margin-top: 6px;
         }
 
-.btn {
+        .btn {
             padding: 12px 16px;
             border-radius: var(--radius-md);
             border: none;
@@ -604,36 +606,36 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             user-select: none;
         }
 
-.btn-gold {
+        .btn-gold {
             background: var(--gold-gradient-button);
             color: #000;
             box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2);
         }
 
-.btn-gold:hover, .btn-gold:active {
+        .btn-gold:hover, .btn-gold:active {
             opacity: 0.95;
             transform: translateY(-1px);
         }
 
-.btn-outline {
+        .btn-outline {
             background: transparent;
             border: 1px solid var(--border-color);
             color: var(--text-muted);
             cursor: pointer;
         }
 
-.btn-outline:hover, .btn-outline:active {
+        .btn-outline:hover, .btn-outline:active {
             color: var(--text-main);
             border-color: var(--text-muted);
         }
 
-.btn-danger {
+        .btn-danger {
             background: rgba(239, 68, 68, 0.15);
             color: var(--danger);
             border: 1px solid rgba(239, 68, 68, 0.3);
         }
 
-.table-wrapper {
+        .table-wrapper {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-lg);
@@ -641,14 +643,14 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             -webkit-overflow-scrolling: touch;
         }
 
-.custom-table {
+        .custom-table {
             width: 100%;
             border-collapse: collapse;
             text-align: left;
             font-size: 13px;
         }
 
-.custom-table th {
+        .custom-table th {
             background: rgba(212, 175, 55, 0.08);
             color: var(--gold-light);
             padding: 12px 14px;
@@ -660,18 +662,18 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             white-space: nowrap;
         }
 
-.custom-table td {
+        .custom-table td {
             padding: 12px 14px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             color: var(--text-main);
             white-space: nowrap;
         }
 
-.custom-table tr:hover {
+        .custom-table tr:hover {
             background: rgba(255,255,255,0.02);
         }
 
-.badge {
+        .badge {
             padding: 4px 8px;
             border-radius: 12px;
             font-size: 11px;
@@ -683,14 +685,14 @@ h1, h2, h3, h4, h5, h6, .brand-text {
         .badge-danger { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
         .badge-gold { background: rgba(212, 175, 55, 0.15); color: var(--gold-primary); }
 
-.kpi-grid {
+        .kpi-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 14px;
             margin-bottom: 20px;
         }
 
-.kpi-card {
+        .kpi-card {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-md);
@@ -700,7 +702,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             gap: 14px;
         }
 
-.kpi-icon {
+        .kpi-icon {
             width: 44px;
             height: 44px;
             border-radius: var(--radius-md);
@@ -714,21 +716,21 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             flex-shrink: 0;
         }
 
-.kpi-info .val {
+        .kpi-info .val {
             font-size: 20px;
             font-weight: 800;
             color: var(--gold-light);
             line-height: 1.2;
         }
 
-.kpi-info .lbl {
+        .kpi-info .lbl {
             font-size: 11px;
             color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
-.modal-overlay {
+        .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
@@ -746,16 +748,16 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             padding: 16px;
         }
 
-#app-alert-modal {
+        #app-alert-modal {
             z-index: 200;
         }
 
-.modal-overlay.active {
+        .modal-overlay.active {
             opacity: 1;
             pointer-events: auto;
         }
 
-.modal-box {
+        .modal-box {
             background: var(--bg-secondary);
             border: 1px solid var(--border-highlight);
             border-radius: var(--radius-lg);
@@ -773,11 +775,11 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             -webkit-overflow-scrolling: touch;
         }
 
-.modal-overlay.active .modal-box {
+        .modal-overlay.active .modal-box {
             transform: scale(1);
         }
 
-.modal-header {
+        .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -785,12 +787,12 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             padding-bottom: 10px;
         }
 
-.modal-header h3 {
+        .modal-header h3 {
             color: var(--gold-light);
             font-size: 16px;
         }
 
-.modal-close {
+        .modal-close {
             background: transparent;
             border: none;
             color: var(--text-muted);
@@ -799,21 +801,21 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             padding: 4px 8px;
         }
 
-.pin-modal-box {
+        .pin-modal-box {
             max-width: 380px;
             text-align: center;
             align-items: center;
             padding: 28px 20px;
         }
 
-.pin-dots {
+        .pin-dots {
             display: flex;
             justify-content: center;
             gap: 12px;
             margin: 16px 0 20px 0;
         }
 
-.pin-dot {
+        .pin-dot {
             width: 16px;
             height: 16px;
             border-radius: 50%;
@@ -822,12 +824,12 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             transition: all 0.15s ease;
         }
 
-.pin-dot.filled {
+        .pin-dot.filled {
             background: var(--gold-primary);
             box-shadow: 0 0 10px var(--gold-glow);
         }
 
-.pin-keypad {
+        .pin-keypad {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 12px;
@@ -835,7 +837,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             max-width: 280px;
         }
 
-.pin-key {
+        .pin-key {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
             color: var(--text-main);
@@ -851,25 +853,25 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             user-select: none;
         }
 
-.pin-key:hover, .pin-key:active {
+        .pin-key:hover, .pin-key:active {
             background: var(--border-color);
             border-color: var(--gold-primary);
             color: var(--gold-light);
             transform: scale(0.97);
         }
 
-.pin-key.action-key {
+        .pin-key.action-key {
             font-size: 14px;
             color: var(--gold-light);
         }
 
-.payment-methods-grid {
+        .payment-methods-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
         }
 
-.pay-method-card {
+        .pay-method-card {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-md);
@@ -884,17 +886,17 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             user-select: none;
         }
 
-.pay-method-card i {
+        .pay-method-card i {
             font-size: 22px;
             color: var(--gold-primary);
         }
 
-.pay-method-card.selected, .pay-method-card:hover {
+        .pay-method-card.selected, .pay-method-card:hover {
             border-color: var(--gold-primary);
             background: rgba(212, 175, 55, 0.1);
         }
 
-.receipt-paper {
+        .receipt-paper {
             background: #fff;
             color: #000;
             padding: 18px;
@@ -906,19 +908,19 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             font-size: 12px;
         }
 
-.receipt-paper .r-center { text-align: center; }
+        .receipt-paper .r-center { text-align: center; }
         .receipt-paper .r-bold { font-weight: bold; }
         .receipt-paper .r-line { border-bottom: 1px dashed #000; margin: 8px 0; }
         .receipt-paper .r-flex { display: flex; justify-content: space-between; }
 
-@media (max-width: 1023px) {
+        @media (max-width: 1023px) {
             .app-container {
                 flex-direction: column;
                 height: auto;
                 overflow: visible;
             }
 
-.sidebar {
+            .sidebar {
                 width: 100%;
                 flex-direction: row;
                 overflow-x: auto;
@@ -932,7 +934,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                 background: var(--bg-secondary);
             }
 
-.sidebar .nav-btn {
+            .sidebar .nav-btn {
                 white-space: nowrap;
                 width: auto;
                 flex: 0 0 auto;
@@ -940,72 +942,72 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                 min-height: 40px;
             }
 
-.pos-grid {
+            .pos-grid {
                 grid-template-columns: 1fr;
                 height: auto;
                 gap: 16px;
             }
 
-.cart-panel {
+            .cart-panel {
                 max-height: 550px;
             }
         }
 
-@media (max-width: 640px) {
+        @media (max-width: 640px) {
             .app-header {
                 padding: 8px 12px;
             }
 
-.brand-logo-svg {
+            .brand-logo-svg {
                 height: 34px;
             }
 
-.brand-logo .title {
+            .brand-logo .title {
                 font-size: 15px;
             }
 
-.header-stats {
+            .header-stats {
                 width: 100%;
                 justify-content: space-between;
                 gap: 6px;
             }
 
-.stat-pill {
+            .stat-pill {
                 font-size: 11px;
                 padding: 4px 8px;
             }
 
-.content-area {
+            .content-area {
                 padding: 12px;
             }
 
-.products-grid {
+            .products-grid {
                 grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
                 gap: 10px;
             }
 
-.product-card {
+            .product-card {
                 padding: 10px;
             }
 
-.product-card .p-name {
+            .product-card .p-name {
                 font-size: 13px;
             }
 
-.product-card .p-price {
+            .product-card .p-price {
                 font-size: 14px;
             }
 
-.kpi-grid {
+            .kpi-grid {
                 grid-template-columns: 1fr;
             }
 
-.payment-methods-grid {
+            .payment-methods-grid {
                 grid-template-columns: 1fr;
             }
         }
 
-@media print {
+        @media print {
             body * {
                 visibility: hidden;
             }
@@ -1023,7 +1025,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
 </head>
 <body>
 
-<header class="app-header">
+    <header class="app-header">
         <div class="brand-logo">
             <svg class="brand-logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 170 150">
                 <defs>
@@ -1046,7 +1048,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             </div>
         </div>
 
-<div class="header-stats">
+        <div class="header-stats">
             <div class="stat-pill" id="stat-pill-db" onclick="openDbModal()" title="Click to configure Supabase Connection">
                 <i class="fa-solid fa-database"></i>
                 <span id="db-status-badge" class="db-status-badge db-offline">Offline</span>
@@ -1067,7 +1069,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
         </div>
     </header>
 
-<div class="app-container">
+    <div class="app-container">
         <!-- Sidebar Controls -->
         <nav class="sidebar">
             <button id="nav-btn-pos" class="nav-btn active" onclick="switchTab('pos')">
@@ -1093,10 +1095,10 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             </button>
         </nav>
 
-<!-- Main Content Area -->
+        <!-- Main Content Area -->
         <main class="content-area">
 
-<!-- Section: POS Register -->
+            <!-- Section: POS Register -->
             <section id="view-pos" class="view-section active">
                 <div class="pos-grid">
                     <div class="pos-products-container">
@@ -1116,24 +1118,24 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                             </div>
                         </div>
 
-<div class="products-grid" id="pos-products-grid"></div>
+                        <div class="products-grid" id="pos-products-grid"></div>
                     </div>
 
-<div class="cart-panel">
+                    <div class="cart-panel">
                         <div class="cart-header">
                             <h3><i class="fa-solid fa-basket-shopping"></i> Current Order</h3>
                             <button class="btn-outline" style="padding: 4px 8px; font-size: 11px;" onclick="clearCart()">Reset</button>
                         </div>
 
-<div class="cart-details-inputs">
+                        <div class="cart-details-inputs">
                             <div class="form-row">
                                 <input type="text" id="cart-member-name" class="text-input" placeholder="Member / Customer Name (Optional)">
                             </div>
                         </div>
 
-<div class="cart-items-list" id="cart-items-container"></div>
+                        <div class="cart-items-list" id="cart-items-container"></div>
 
-<div class="cart-summary">
+                        <div class="cart-summary">
                             <div class="summary-row">
                                 <span>Subtotal</span>
                                 <span id="cart-subtotal">RM 0.00</span>
@@ -1143,7 +1145,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                                 <span class="amt" id="cart-total">RM 0.00</span>
                             </div>
 
-<div class="cart-actions">
+                            <div class="cart-actions">
                                 <button class="btn btn-danger" onclick="clearCart()">Clear</button>
                                 <button class="btn btn-gold" onclick="openPaymentModal()">
                                     <i class="fa-solid fa-credit-card"></i> Pay Now
@@ -1154,7 +1156,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                 </div>
             </section>
 
-<section id="view-products" class="view-section">
+            <section id="view-products" class="view-section">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
                     <div>
                         <h2>Product & Service Management</h2>
@@ -1165,7 +1167,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                     </button>
                 </div>
 
-<div class="table-wrapper">
+                <div class="table-wrapper">
                     <table class="custom-table">
                         <thead>
                             <tr>
@@ -1182,13 +1184,13 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                 </div>
             </section>
 
-<section id="view-inventory" class="view-section">
+            <section id="view-inventory" class="view-section">
                 <div style="margin-bottom: 16px;">
                     <h2>Inventory & Stock Tracking</h2>
                     <p style="color: var(--text-muted); font-size: 13px;">Monitor real-time retail stocks and manage product replenishment</p>
                 </div>
 
-<div class="kpi-grid">
+                <div class="kpi-grid">
                     <div class="kpi-card">
                         <div class="kpi-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
                         <div class="kpi-info">
@@ -1200,7 +1202,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                         <div class="kpi-icon"><i class="fa-solid fa-triangle-exclamation" style="color: var(--warning);"></i></div>
                         <div class="kpi-info">
                             <div class="val" id="inv-low-stock">0</div>
-                            <div class="lbl">Low Stock Alerts (<10)</div>
+                            <div class="lbl">Low Stock Alerts (&lt;10)</div>
                         </div>
                     </div>
                     <div class="kpi-card">
@@ -1212,7 +1214,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                     </div>
                 </div>
 
-<div class="table-wrapper">
+                <div class="table-wrapper">
                     <table class="custom-table">
                         <thead>
                             <tr>
@@ -1228,7 +1230,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                 </div>
             </section>
 
-<section id="view-pt-commissions" class="view-section">
+            <section id="view-pt-commissions" class="view-section">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
                     <div>
                         <h2>Personal Trainer Commissions</h2>
@@ -1242,9 +1244,9 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                     </div>
                 </div>
 
-<div class="kpi-grid" id="trainer-kpis-grid"></div>
+                <div class="kpi-grid" id="trainer-kpis-grid"></div>
 
-<div class="table-wrapper">
+                <div class="table-wrapper">
                     <table class="custom-table">
                         <thead>
                             <tr>
@@ -1263,14 +1265,14 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                 </div>
             </section>
 
-<section id="view-reports" class="view-section">
+            <section id="view-reports" class="view-section">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
                     <div>
                         <h2>Sales Analytics & Financial Reports</h2>
                         <p style="color: var(--text-muted); font-size: 13px;">Review revenue, transaction volume, and performance periods</p>
                     </div>
 
-<div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
                         <div style="display: flex; align-items: center; gap: 6px;">
                             <label style="font-size: 12px; color: var(--text-muted);">Pick Date:</label>
                             <input type="date" id="report-date-picker" class="text-input" style="padding: 6px 10px; min-height: 36px; font-size: 12px; width: 140px;" onchange="onReportDateChange()">
@@ -1282,10 +1284,11 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                         <button class="btn btn-outline" style="padding: 8px 12px; font-size: 12px;" onclick="changeReportPeriod('monthly', this)">Monthly</button>
                         <button class="btn btn-outline" style="padding: 8px 12px; font-size: 12px;" onclick="changeReportPeriod('yearly', this)">Yearly</button>
                         <button class="btn btn-gold" style="padding: 8px 12px; font-size: 12px;" onclick="exportReportCSV()"><i class="fa-solid fa-download"></i> CSV Export</button>
+                        <button class="btn btn-gold" style="padding: 8px 12px; font-size: 12px;" onclick="copyReportScreenshot()"><i class="fa-solid fa-camera"></i> Copy Screenshot</button>
                     </div>
                 </div>
 
-<div class="kpi-grid">
+                <div class="kpi-grid">
                     <div class="kpi-card">
                         <div class="kpi-icon"><i class="fa-solid fa-coins"></i></div>
                         <div class="kpi-info">
@@ -1309,14 +1312,14 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                     </div>
                 </div>
 
-<div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 16px; margin-bottom: 20px;">
+                <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 16px; margin-bottom: 20px;">
                     <h3 style="color: var(--gold-light); margin-bottom: 12px; font-size: 15px;">Revenue Trend Chart</h3>
                     <div style="height: 250px; position: relative;">
                         <canvas id="salesChart"></canvas>
                     </div>
                 </div>
 
-<div id="report-tables-wrapper" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-top: 20px; margin-bottom: 20px; background: var(--bg-primary); padding: 12px; border-radius: var(--radius-lg);">
+                <div id="report-tables-wrapper" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-top: 20px; margin-bottom: 20px; background: var(--bg-primary); padding: 12px; border-radius: var(--radius-lg);">
                     <div style="display: flex; flex-direction: column; gap: 8px;">
                         <h3 style="color: var(--gold-light); font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">
                             <i class="fa-solid fa-credit-card"></i> Payment Method Summary
@@ -1334,7 +1337,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                         </div>
                     </div>
 
-<div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
                         <h3 style="color: var(--gold-light); font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">
                             <i class="fa-solid fa-cart-flatbed"></i> Item Sales Breakdown
                         </h3>
@@ -1353,7 +1356,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                         </div>
                     </div>
 
-<div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
                         <h3 style="color: var(--gold-light); font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">
                             <i class="fa-solid fa-user-ninja"></i> PT Training & Trainer Sales
                         </h3>
@@ -1372,16 +1375,56 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                         </div>
                     </div>
                 </div>
+
+                <!-- Monthly Daily Sales Matrix Table -->
+                <div id="monthly-matrix-wrapper" style="display: none; margin-top: 20px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                        <h3 style="color: var(--gold-light); font-size: 15px; text-transform: uppercase; letter-spacing: 0.5px;">
+                            <i class="fa-solid fa-calendar-days"></i> Monthly Daily Sales Breakdown Matrix
+                        </h3>
+                        <button class="btn btn-gold" style="padding: 6px 12px; font-size: 12px;" onclick="exportReportCSV()">
+                            <i class="fa-solid fa-file-csv"></i> Export Monthly Matrix CSV
+                        </button>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="custom-table" style="font-size: 11px;">
+                            <thead>
+                                <tr>
+                                    <th>DATE</th>
+                                    <th style="text-align: right;">CASH</th>
+                                    <th style="text-align: right;">TRANSFER</th>
+                                    <th style="text-align: right;">CARD</th>
+                                    <th style="text-align: right; background: rgba(59, 130, 246, 0.15); color: #60a5fa;">PAYMENT TOTAL</th>
+                                    <th style="text-align: right;">WALKIN</th>
+                                    <th style="text-align: right;">PT</th>
+                                    <th style="text-align: right;">OTHERS</th>
+                                    <th style="text-align: right;">MEMBERSHIP</th>
+                                    <th style="text-align: right;">MINERAL</th>
+                                    <th style="text-align: right;">1.5L</th>
+                                    <th style="text-align: right;">100PLUS</th>
+                                    <th style="text-align: right;">EXTRAJOSS</th>
+                                    <th style="text-align: right;">COFFEE</th>
+                                    <th style="text-align: right;">OATSIDE</th>
+                                    <th style="text-align: right;">T-SHIRT</th>
+                                    <th style="text-align: right;">TOWEL</th>
+                                    <th style="text-align: right; background: rgba(16, 185, 129, 0.15); color: var(--success);">SALES TOTAL</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rep-monthly-matrix-body"></tbody>
+                            <tfoot id="rep-monthly-matrix-foot"></tfoot>
+                        </table>
+                    </div>
+                </div>
             </section>
 
-<section id="view-history" class="view-section">
+            <section id="view-history" class="view-section">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
                     <div>
                         <h2>Transaction Log & Receipts</h2>
                         <p style="color: var(--text-muted); font-size: 13px;">View and reprint previous sales transactions</p>
                     </div>
 
-<div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                         <div style="display: flex; align-items: center; gap: 6px;">
                             <label style="font-size: 12px; color: var(--text-muted);">Filter Date:</label>
                             <input type="date" id="history-date-picker" class="text-input" style="padding: 6px 10px; min-height: 36px; font-size: 12px; width: 140px;" onchange="renderHistoryTable()">
@@ -1392,12 +1435,15 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                             <select id="history-sort-order" class="select-input" style="padding: 6px 10px; min-height: 36px; font-size: 12px; width: 130px;" onchange="renderHistoryTable()">
                                 <option value="desc">Newest First</option>
                                 <option value="asc">Oldest First</option>
+                                <option value="Completed">Completed</option>
+                                <option value="Partial">Partial</option>
+                                <option value="Voided">Voided</option>
                             </select>
                         </div>
                     </div>
                 </div>
 
-<div class="table-wrapper">
+                <div class="table-wrapper">
                     <table class="custom-table">
                         <thead>
                             <tr>
@@ -1417,7 +1463,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                 </div>
             </section>
 
-<section id="view-users" class="view-section">
+            <section id="view-users" class="view-section">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
                     <div>
                         <h2>User Account Management (Owner)</h2>
@@ -1428,7 +1474,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                     </button>
                 </div>
 
-<div class="table-wrapper">
+                <div class="table-wrapper">
                     <table class="custom-table">
                         <thead>
                             <tr>
@@ -1446,14 +1492,15 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                 </div>
             </section>
 
-<footer style="text-align: center; margin-top: 30px; padding: 16px 0 8px 0; font-size: 11px; color: var(--text-muted); border-top: 1px solid rgba(212, 175, 55, 0.1);">
+            <footer style="text-align: center; margin-top: 30px; padding: 16px 0 8px 0; font-size: 11px; color: var(--text-muted); border-top: 1px solid rgba(212, 175, 55, 0.1);">
                 © Innovation Fitness. All rights reserved.
             </footer>
 
-</main>
+        </main>
     </div>
 
-<div class="modal-overlay active" id="login-modal">
+    <!-- Passcode Modal -->
+    <div class="modal-overlay active" id="login-modal">
         <div class="modal-box pin-modal-box">
             <div style="margin-bottom: 10px;">
                 <svg class="brand-logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 170 150" style="height: 52px;">
@@ -1475,7 +1522,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             <h2 style="font-size: 18px; color: var(--gold-light);">INNOVATION FITNESS</h2>
             <p style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Enter Staff Passcode PIN</p>
 
-<div class="pin-dots" id="pin-dots-container">
+            <div class="pin-dots" id="pin-dots-container">
                 <div class="pin-dot"></div>
                 <div class="pin-dot"></div>
                 <div class="pin-dot"></div>
@@ -1484,7 +1531,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                 <div class="pin-dot"></div>
             </div>
 
-<div class="pin-keypad">
+            <div class="pin-keypad">
                 <button class="pin-key" onclick="pressPin('1')">1</button>
                 <button class="pin-key" onclick="pressPin('2')">2</button>
                 <button class="pin-key" onclick="pressPin('3')">3</button>
@@ -1499,11 +1546,12 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                 <button class="pin-key action-key" style="color: var(--gold-primary);" onclick="submitPin()">ENTER</button>
             </div>
 
-<div id="pin-error-msg" style="color: var(--danger); font-size: 11px; margin-top: 12px; min-height: 16px; font-weight: bold;"></div>
+            <div id="pin-error-msg" style="color: var(--danger); font-size: 11px; margin-top: 12px; min-height: 16px; font-weight: bold;"></div>
         </div>
     </div>
 
-<div class="modal-overlay" id="user-modal">
+    <!-- User Account Modal -->
+    <div class="modal-overlay" id="user-modal">
         <div class="modal-box" style="max-width: 400px;">
             <div class="modal-header">
                 <h3 id="user-modal-title">Add User Account</h3>
@@ -1538,19 +1586,20 @@ h1, h2, h3, h4, h5, h6, .brand-text {
         </div>
     </div>
 
-<div class="modal-overlay" id="payment-modal">
+    <!-- Payment Modal -->
+    <div class="modal-overlay" id="payment-modal">
         <div class="modal-box">
             <div class="modal-header">
                 <h3>Select Payment Method</h3>
                 <button class="modal-close" onclick="closeModal('payment-modal')">×</button>
             </div>
 
-<div style="text-align: center; margin: 6px 0;">
+            <div style="text-align: center; margin: 6px 0;">
                 <div style="font-size: 12px; color: var(--text-muted);">Amount Due</div>
                 <div style="font-size: 28px; font-weight: 800; color: var(--gold-light);" id="pay-modal-amount">RM 0.00</div>
             </div>
 
-<div class="payment-methods-grid">
+            <div class="payment-methods-grid">
                 <div class="pay-method-card selected" onclick="selectPayMethod('Cash', this)">
                     <i class="fa-solid fa-money-bill-wave"></i>
                     <span style="font-weight: 600; font-size: 13px;">Cash</span>
@@ -1569,7 +1618,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                 </div>
             </div>
 
-<div id="cash-calculator-box" style="display: flex; flex-direction: column; gap: 8px; background: var(--bg-card); padding: 12px; border-radius: var(--radius-md);">
+            <div id="cash-calculator-box" style="display: flex; flex-direction: column; gap: 8px; background: var(--bg-card); padding: 12px; border-radius: var(--radius-md);">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <label style="font-size: 12px; color: var(--text-muted);">Tendered Cash Amount:</label>
                     <input type="number" id="cash-tendered" class="text-input" style="width: 110px; text-align: right; font-weight: bold;" placeholder="0.00" oninput="calcCashChange()">
@@ -1580,12 +1629,12 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                 </div>
             </div>
 
-<div id="partial-calculator-box" style="display: none; flex-direction: column; gap: 8px; background: var(--bg-card); padding: 12px; border-radius: var(--radius-md);">
+            <div id="partial-calculator-box" style="display: none; flex-direction: column; gap: 8px; background: var(--bg-card); padding: 12px; border-radius: var(--radius-md);">
                 <div style="font-size: 12px; color: var(--gold-light); font-weight: bold; border-bottom: 1px solid var(--border-color); padding-bottom: 4px;">
                     Partial Payment / Split Across Dates
                 </div>
 
-<div style="display: flex; gap: 8px; align-items: center;">
+                <div style="display: flex; gap: 8px; align-items: center;">
                     <select id="partial-m1-select" class="select-input" style="flex: 1;" onchange="updatePartialCalc()">
                         <option value="Cash">Cash</option>
                         <option value="Online Transfer">Online Transfer</option>
@@ -1594,7 +1643,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                     <input type="number" step="0.01" min="0" id="partial-m1-amt" class="text-input" style="width: 110px; text-align: right; font-weight: bold;" placeholder="Paid Today" oninput="updatePartialCalc('m1')">
                 </div>
 
-<div style="display: flex; gap: 8px; align-items: center;">
+                <div style="display: flex; gap: 8px; align-items: center;">
                     <select id="partial-m2-select" class="select-input" style="flex: 1;" onchange="updatePartialCalc()">
                         <option value="None">None (Single Payment)</option>
                         <option value="Online Transfer">Online Transfer</option>
@@ -1604,7 +1653,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                     <input type="number" step="0.01" min="0" id="partial-m2-amt" class="text-input" style="width: 110px; text-align: right; font-weight: bold;" placeholder="Amt 2" oninput="updatePartialCalc('m2')">
                 </div>
 
-<div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; border-top: 1px solid var(--border-color); padding-top: 6px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; border-top: 1px solid var(--border-color); padding-top: 6px;">
                     <span style="color: var(--text-muted);">Total Paid Today:</span>
                     <span id="partial-total-allocated" style="font-weight: bold; color: var(--gold-light);">RM 0.00</span>
                 </div>
@@ -1614,13 +1663,14 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                 </div>
             </div>
 
-<button class="btn btn-gold" style="width: 100%; margin-top: 6px;" onclick="processFinalSale()">
+            <button class="btn btn-gold" style="width: 100%; margin-top: 6px;" onclick="processFinalSale()">
                 <i class="fa-solid fa-check-circle"></i> Complete Checkout
             </button>
         </div>
     </div>
 
-<div class="modal-overlay" id="settle-balance-modal">
+    <!-- Settle Pending Balance Modal -->
+    <div class="modal-overlay" id="settle-balance-modal">
         <div class="modal-box" style="max-width: 400px;">
             <div class="modal-header">
                 <h3><i class="fa-solid fa-hand-holding-dollar" style="color: var(--gold-primary);"></i> Settle Pending Balance</h3>
@@ -1638,12 +1688,12 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                     </div>
                 </div>
 
-<div>
+                <div>
                     <label style="font-size: 12px; color: var(--text-muted);">Payment Amount Collected Today (RM)</label>
                     <input type="number" step="0.01" min="0.01" id="settle-pay-amount" class="text-input" style="font-size: 18px; font-weight: 800; color: var(--gold-light);" required>
                 </div>
 
-<div>
+                <div>
                     <label style="font-size: 12px; color: var(--text-muted);">Payment Method</label>
                     <select id="settle-pay-method" class="select-input" required>
                         <option value="Cash">Cash</option>
@@ -1652,29 +1702,30 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                     </select>
                 </div>
 
-<button type="submit" class="btn btn-gold" style="margin-top: 8px;">
+                <button type="submit" class="btn btn-gold" style="margin-top: 8px;">
                     <i class="fa-solid fa-check-double"></i> Collect & Update Invoice
                 </button>
             </form>
         </div>
     </div>
 
-<div class="modal-overlay" id="product-modal">
+    <!-- Product Modal with Multiple Prices & Custom Price Support -->
+    <div class="modal-overlay" id="product-modal">
         <div class="modal-box">
             <div class="modal-header">
                 <h3 id="product-modal-title">Add New Product</h3>
                 <button class="modal-close" onclick="closeModal('product-modal')">×</button>
             </div>
 
-<form id="product-form" onsubmit="saveProduct(event)" style="display: flex; flex-direction: column; gap: 10px;">
+            <form id="product-form" onsubmit="saveProduct(event)" style="display: flex; flex-direction: column; gap: 10px;">
                 <input type="hidden" id="p-form-id">
 
-<div>
+                <div>
                     <label style="font-size: 12px; color: var(--text-muted);">Product Name</label>
                     <input type="text" id="p-form-name" class="text-input" required placeholder="e.g. Gold Gym Membership">
                 </div>
 
-<div style="display: flex; gap: 8px;">
+                <div style="display: flex; gap: 8px;">
                     <div style="flex: 1;">
                         <label style="font-size: 12px; color: var(--text-muted);">Category</label>
                         <select id="p-form-cat" class="select-input" required>
@@ -1692,9 +1743,9 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                     </div>
                 </div>
 
-<div style="display: flex; gap: 8px;">
+                <div style="display: flex; gap: 8px;">
                     <div style="flex: 1;">
-                        <label style="font-size: 12px; color: var(--text-muted);">Selling Price (RM)</label>
+                        <label style="font-size: 12px; color: var(--text-muted);">Default Selling Price (RM)</label>
                         <input type="number" step="0.01" id="p-form-price" class="text-input" required min="0" placeholder="0.00">
                     </div>
                     <div style="flex: 1;">
@@ -1703,19 +1754,53 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                     </div>
                 </div>
 
-<button type="submit" class="btn btn-gold" style="margin-top: 8px;">Save Product</button>
+                <div>
+                    <label style="font-size: 12px; color: var(--text-muted);">Additional Multiple Rates/Prices (Optional, comma-separated)</label>
+                    <input type="text" id="p-form-extra-prices" class="text-input" placeholder="e.g. 150.00, 105.00">
+                    <span style="font-size: 10px; color: var(--text-muted);">Allows setting multiple fixed prices for a single product.</span>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+                    <input type="checkbox" id="p-form-allow-custom" style="width: 18px; height: 18px; accent-color: var(--gold-primary);">
+                    <label for="p-form-allow-custom" style="font-size: 13px; color: var(--gold-light); cursor: pointer; user-select: none;">
+                        Allow Custom Price input at checkout
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-gold" style="margin-top: 8px;">Save Product</button>
             </form>
         </div>
     </div>
 
-<div class="modal-overlay" id="receipt-modal">
+    <!-- Custom Stock Amount Modal -->
+    <div class="modal-overlay" id="stock-modal">
+        <div class="modal-box" style="max-width: 360px;">
+            <div class="modal-header">
+                <h3 id="stock-modal-title">Set Custom Stock</h3>
+                <button class="modal-close" onclick="closeModal('stock-modal')">×</button>
+            </div>
+            <form onsubmit="saveCustomStock(event)" style="display: flex; flex-direction: column; gap: 12px; margin-top: 6px;">
+                <input type="hidden" id="stock-p-id">
+                <div>
+                    <label style="font-size: 12px; color: var(--text-muted);">Target Stock Quantity</label>
+                    <input type="number" min="0" id="stock-custom-input" class="text-input" style="font-size: 18px; font-weight: 800; padding: 10px; color: var(--gold-light);" required placeholder="0">
+                </div>
+                <button type="submit" class="btn btn-gold" style="width: 100%;">
+                    <i class="fa-solid fa-save"></i> Update Stock
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Receipt Preview Modal -->
+    <div class="modal-overlay" id="receipt-modal">
         <div class="modal-box" style="max-width: 350px; padding: 14px;">
             <div class="modal-header" style="border: none; padding-bottom: 0;">
                 <h3 style="font-size: 14px;">Receipt Preview</h3>
                 <button class="modal-close" onclick="closeModal('receipt-modal')">×</button>
             </div>
 
-<div class="receipt-paper" id="printable-receipt">
+            <div class="receipt-paper" id="printable-receipt">
                 <div class="r-center" style="margin-bottom: 6px;">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 170 150" style="width: 32px; height: auto;">
                         <path d="M 118 18 L 18 18 L 18 132 L 138 132 L 138 42" fill="none" stroke="#000" stroke-width="9" stroke-linecap="square"/>
@@ -1729,17 +1814,17 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                 <div class="r-center" style="font-size: 10px;">Tel: 09-7461392</div>
                 <div class="r-center" style="font-size: 10px;">Mobile: 010-2505902</div>
 
-<div class="r-line"></div>
+                <div class="r-line"></div>
                 <div class="r-flex"><span>Receipt ID:</span><span id="rcpt-id" class="r-bold">INV-1001</span></div>
                 <div class="r-flex"><span>Date:</span><span id="rcpt-date">22/07/2026</span></div>
-                <div class="r-flex"><span>Customer:</span><span id="rcpt-customer">Guest</span></div>
+                <div class="r-flex"><span>Customer:</span><span id="rcpt-customer">Guest Member</span></div>
                 <div class="r-flex"><span>Cashier:</span><span id="rcpt-cashier">Staff</span></div>
                 <div class="r-flex"><span>Trainer:</span><span id="rcpt-trainer">N/A</span></div>
 
-<div class="r-line"></div>
+                <div class="r-line"></div>
                 <div id="rcpt-items-list" style="display: flex; flex-direction: column; gap: 4px;"></div>
 
-<div class="r-line"></div>
+                <div class="r-line"></div>
                 <div class="r-flex"><span>Total Bill:</span><span id="rcpt-subtotal">RM 0.00</span></div>
                 <div class="r-flex r-bold" style="font-size: 12px; margin-top: 2px;">
                     <span>PAID TODAY:</span><span id="rcpt-total">RM 0.00</span>
@@ -1749,12 +1834,12 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                 </div>
                 <div class="r-flex" style="margin-top: 4px;"><span>Payment:</span><span id="rcpt-method">Cash</span></div>
 
-<div class="r-line"></div>
+                <div class="r-line"></div>
                 <div class="r-center" style="margin-top: 6px;">THANK YOU FOR TRAINING WITH US!</div>
                 <div class="r-center" style="font-size: 9px; margin-top: 2px;">No Refunds on Memberships & Supplements</div>
             </div>
 
-<div style="display: flex; gap: 8px; margin-top: 8px;">
+            <div style="display: flex; gap: 8px; margin-top: 8px;">
                 <button class="btn btn-outline" style="flex: 1;" onclick="closeModal('receipt-modal')">Close</button>
                 <button class="btn btn-gold" style="flex: 1;" onclick="window.print()">
                     <i class="fa-solid fa-print"></i> Print
@@ -1763,7 +1848,8 @@ h1, h2, h3, h4, h5, h6, .brand-text {
         </div>
     </div>
 
-<div class="modal-overlay" id="custom-price-modal">
+    <!-- Custom Price Input Modal -->
+    <div class="modal-overlay" id="custom-price-modal">
         <div class="modal-box" style="max-width: 360px;">
             <div class="modal-header">
                 <h3 id="custom-price-title">Set Custom Amount</h3>
@@ -1785,7 +1871,8 @@ h1, h2, h3, h4, h5, h6, .brand-text {
         </div>
     </div>
 
-<div class="modal-overlay" id="app-alert-modal">
+    <!-- System Alert Modal -->
+    <div class="modal-overlay" id="app-alert-modal">
         <div class="modal-box" style="max-width: 340px; text-align: center;">
             <div style="font-size: 28px; color: var(--warning); margin-bottom: 8px;">
                 <i class="fa-solid fa-circle-info"></i>
@@ -1795,7 +1882,8 @@ h1, h2, h3, h4, h5, h6, .brand-text {
         </div>
     </div>
 
-<div class="modal-overlay" id="membership-price-modal">
+    <!-- Membership/Package Multiple Price Choice Modal -->
+    <div class="modal-overlay" id="membership-price-modal">
         <div class="modal-box" style="max-width: 360px;">
             <div class="modal-header">
                 <h3 id="membership-modal-title">Select Rate / Option</h3>
@@ -1812,7 +1900,8 @@ h1, h2, h3, h4, h5, h6, .brand-text {
         </div>
     </div>
 
-<div class="modal-overlay" id="db-settings-modal">
+    <!-- Supabase Connection Modal -->
+    <div class="modal-overlay" id="db-settings-modal">
         <div class="modal-box" style="max-width: 440px;">
             <div class="modal-header">
                 <h3><i class="fa-solid fa-database" style="color: var(--gold-primary);"></i> Supabase Backend Connection</h3>
@@ -1821,17 +1910,17 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 6px;">
                 <p style="font-size: 12px; color: var(--text-muted);">Configure your Supabase Project parameters dynamically at runtime.</p>
 
-<div>
+                <div>
                     <label style="font-size: 12px; color: var(--text-muted);">Supabase Project URL</label>
                     <input type="text" id="db-url-input" class="text-input" placeholder="https://your-project.supabase.co">
                 </div>
 
-<div>
+                <div>
                     <label style="font-size: 12px; color: var(--text-muted);">Supabase Anon Key (Public API Key)</label>
                     <input type="password" id="db-key-input" class="text-input" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
                 </div>
 
-<div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
                     <button class="btn btn-gold" onclick="saveDbCredentials()">
                         <i class="fa-solid fa-plug"></i> Save & Connect Database
                     </button>
@@ -1846,7 +1935,25 @@ h1, h2, h3, h4, h5, h6, .brand-text {
         </div>
     </div>
 
-<script>
+    <!-- Screenshot Preview Fallback Modal -->
+    <div class="modal-overlay" id="screenshot-modal">
+        <div class="modal-box" style="max-width: 500px; text-align: center;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-camera" style="color: var(--gold-primary);"></i> Report Screenshot</h3>
+                <button class="modal-close" onclick="closeModal('screenshot-modal')">×</button>
+            </div>
+            <div id="screenshot-img-container" style="margin: 10px 0; max-height: 55vh; overflow: auto; border-radius: 8px;"></div>
+            <p id="screenshot-status-text" style="font-size: 12px; color: var(--gold-light); margin-bottom: 10px;"></p>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn btn-outline" style="flex: 1;" onclick="closeModal('screenshot-modal')">Close</button>
+                <a id="screenshot-download-btn" class="btn btn-gold" style="flex: 1; text-decoration: none; text-align: center; justify-content: center;" download="Sales_Report_Screenshot.png">
+                    <i class="fa-solid fa-download"></i> Download Image
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
         /* HARDCODED SUPABASE CONFIG (Global Fallback) */
         window.SUPABASE_CONFIG = {
             url: 'https://ezajfhciwjsrsfihxtyt.supabase.co',
@@ -1876,7 +1983,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
 
         const defaultProducts = [
             { id: 'P01', name: 'Walk-In', category: 'Services', price: 10.00, cost: 0, stock: 999, comm: 0 },
-            { id: 'P02', name: '1x PT Session', category: 'PT Sessions', price: 0, cost: 0, stock: 999, comm: 60, isCustomPrice: true },
+            { id: 'P02', name: '1x PT Session', category: 'PT Sessions', price: 0, cost: 0, stock: 999, comm: 60, isCustomPrice: true, allowCustom: true },
             { id: 'P03', name: '10x PT Session Package', category: 'PT Sessions', price: 852.80, prices: [852.80, 1352.00], allowCustom: true, cost: 0, stock: 999, comm: 60 },
             { id: 'P04', name: '20x PT Session Package', category: 'PT Sessions', price: 1601.60, prices: [1601.60, 2288.00], allowCustom: true, cost: 0, stock: 999, comm: 60 },
             { id: 'P05', name: '30x PT Session Package', category: 'PT Sessions', price: 2028.20, prices: [2028.20, 2808.00, 1808.00], allowCustom: true, cost: 0, stock: 999, comm: 60 },
@@ -1892,7 +1999,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             { id: 'P15', name: 'Coffee', category: 'Food & Beverages', price: 6.00, cost: 3.00, stock: 30, comm: 0 },
             { id: 'P16', name: 'T-Shirt', category: 'Apparel', price: 35.00, cost: 18.00, stock: 25, comm: 0 },
             { id: 'P17', name: 'Towel', category: 'Apparel', price: 2.00, cost: 1.00, stock: 50, comm: 0 },
-            { id: 'P18', name: 'Others', category: 'Others', price: 0, cost: 0, stock: 999, comm: 0, isCustomPrice: true }
+            { id: 'P18', name: 'Others', category: 'Others', price: 0, cost: 0, stock: 999, comm: 0, isCustomPrice: true, allowCustom: true }
         ];
 
         const defaultUsers = [
@@ -1983,7 +2090,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
         }
 
         function getPtPackageBreakdown(price) {
-            const p = Math.round(price * 100) / 100;
+            const p = Math.round((parseFloat(price) || 0) * 100) / 100;
             if (p === 852.80) return { ptFee: 720.00, othersFee: 132.80 };
             if (p === 1601.60) return { ptFee: 1340.00, othersFee: 261.60 };
             if (p === 2028.20) return { ptFee: 1650.00, othersFee: 378.20 };
@@ -1991,7 +2098,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             if (p === 2288.00) return { ptFee: 2000.00, othersFee: 288.00 };
             if (p === 2808.00) return { ptFee: 2400.00, othersFee: 408.00 };
             if (p === 1808.00) return { ptFee: 1650.00, othersFee: 158.00 };
-            return { ptFee: p, othersFee: 0 };
+            return { ptFee: isNaN(p) ? 0 : p, othersFee: 0 };
         }
 
         function getTrainerTierRate(totalSales) {
@@ -2099,8 +2206,8 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                         cost: parseFloat(p.cost),
                         stock: parseInt(p.stock, 10),
                         comm: parseFloat(p.comm),
-                        isCustomPrice: p.is_custom_price,
-                        allowCustom: p.allow_custom !== undefined ? p.allow_custom : (p.category === 'PT Sessions' || p.category === 'Memberships' || true)
+                        isCustomPrice: p.is_custom_price || false,
+                        allowCustom: p.allow_custom !== undefined ? p.allow_custom : Boolean(p.is_custom_price)
                     }));
                     localStorage.setItem(STORAGE_KEY_PRODUCTS, JSON.stringify(products));
                 }
@@ -2127,7 +2234,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                         return {
                             id: s.id,
                             date: s.date,
-                            customer: s.customer,
+                            customer: (s.customer && s.customer.trim()) ? s.customer : ((s.customer_name && s.customer_name.trim()) ? s.customer_name : 'Guest Member'),
                             trainer: s.trainer,
                             cashier: s.cashier || 'Admin',
                             items: typeof s.items === 'string' ? JSON.parse(s.items) : s.items,
@@ -2197,9 +2304,11 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                 const isServiceOrMembership = p.category === 'Memberships' || p.category === 'PT Sessions' || p.category === 'Services' || p.category === 'Others';
                 const isLowStock = p.stock < 10 && !isServiceOrMembership;
 
-                const priceDisplay = p.isCustomPrice 
+                const priceDisplay = p.isCustomPrice && (!p.prices || p.prices.length === 0)
                     ? 'Custom Price' 
-                    : (p.prices ? p.prices.map(pr => `RM ${pr.toFixed(2)}`).join(' / ') + ((p.allowCustom || p.category === 'PT Sessions' || p.category === 'Memberships') ? ' / Custom' : '') : `RM ${p.price.toFixed(2)}`);
+                    : (p.prices && p.prices.length > 0 
+                        ? p.prices.map(pr => `RM ${pr.toFixed(2)}`).join(' / ') + ((p.allowCustom || p.isCustomPrice || p.category === 'PT Sessions' || p.category === 'Memberships') ? ' / Custom' : '') 
+                        : `RM ${p.price.toFixed(2)}` + ((p.allowCustom || p.isCustomPrice) ? ' / Custom' : ''));
 
                 card.innerHTML = `
                     <div>
@@ -2208,7 +2317,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                     </div>
                     <div>
                         <div class="p-stock ${isLowStock ? 'low' : ''}">${isServiceOrMembership ? 'Unlimited' : `Stock: ${p.stock}`}</div>
-                        <div class="p-price" style="${p.prices ? 'font-size: 11px;' : ''}">${priceDisplay}</div>
+                        <div class="p-price" style="${p.prices && p.prices.length > 1 ? 'font-size: 11px;' : ''}">${priceDisplay}</div>
                     </div>
                     <div class="add-btn"><i class="fa-solid fa-plus"></i></div>
                 `;
@@ -2311,7 +2420,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                 container.innerHTML = '';
                 const rateLabels = product.category === 'Memberships'
                     ? ['Standard', 'Promo', 'Special Rate']
-                    : ['Rate 1', 'Rate 2', 'Rate 3'];
+                    : ['Rate 1', 'Rate 2', 'Rate 3', 'Rate 4', 'Rate 5'];
 
                 if (product.prices && product.prices.length > 0) {
                     product.prices.forEach((pr, idx) => {
@@ -2325,7 +2434,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                     });
                 }
 
-                if (product.allowCustom || product.category === 'PT Sessions' || product.category === 'Memberships' || !product.prices || product.prices.length === 0) {
+                if (product.allowCustom || product.isCustomPrice || product.category === 'PT Sessions' || product.category === 'Memberships' || !product.prices || product.prices.length === 0) {
                     const customBtn = document.createElement('button');
                     customBtn.className = 'btn btn-outline';
                     customBtn.style.cssText = 'width: 100%; justify-content: space-between; border-color: var(--border-color); color: var(--text-main);';
@@ -2375,22 +2484,10 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                 populateTrainerDropdown();
             }
 
-            if (product.isCustomPrice && (!product.prices || product.prices.length === 0)) {
-                targetCustomProduct = product;
-                document.getElementById('custom-price-title').innerText = `Set Price: ${product.name}`;
-                document.getElementById('custom-price-input').value = '';
+            const hasMultiplePrices = product.prices && product.prices.length > 1;
+            const hasCustomOption = product.allowCustom || product.isCustomPrice;
 
-                const customTrainerBox = document.getElementById('custom-trainer-select-box');
-                if (customTrainerBox) {
-                    customTrainerBox.style.display = isPtItem ? 'flex' : 'none';
-                }
-
-                document.getElementById('custom-price-modal').classList.add('active');
-                setTimeout(() => document.getElementById('custom-price-input').focus(), 100);
-                return;
-            }
-
-            if ((product.prices && product.prices.length > 0) || product.category === 'Memberships' || (product.category === 'PT Sessions' && !product.isCustomPrice)) {
+            if (hasMultiplePrices || hasCustomOption || product.category === 'Memberships' || product.category === 'PT Sessions') {
                 openMembershipPriceModal(product);
                 return;
             }
@@ -2591,7 +2688,8 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                 }
             }
 
-            const customer = document.getElementById('cart-member-name')?.value.trim() || 'Guest Member';
+            const customerInput = document.getElementById('cart-member-name')?.value.trim();
+            const customer = (customerInput && customerInput.length > 0) ? customerInput : 'Guest Member';
             const generalTrainer = 'N/A';
 
             let totalTrainerComm = 0;
@@ -2683,7 +2781,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             sales.unshift(newSale);
             saveData();
 
-            // Sync to Supabase with flexible payloads & retry handling for 400 Bad Request / missing columns
+            // Sync to Supabase
             if (supabaseClient) {
                 try {
                     let salePayload = {
@@ -2746,7 +2844,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             const currentDue = sale.balanceDue !== undefined ? sale.balanceDue : Math.max(0, sale.total - currentPaid);
 
             if (rcptEl) rcptEl.innerText = sale.id;
-            if (custEl) custEl.innerText = sale.customer || 'Guest Member';
+            if (custEl) custEl.innerText = (sale.customer && sale.customer.trim()) ? sale.customer : 'Guest Member';
             if (totalEl) totalEl.innerText = `RM ${sale.total.toFixed(2)}`;
             if (paidEl) paidEl.innerText = `RM ${currentPaid.toFixed(2)}`;
             if (dueEl) dueEl.innerText = `RM ${currentDue.toFixed(2)}`;
@@ -2833,7 +2931,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
 
             if (rcptId) rcptId.innerText = sale.id;
             if (rcptDate) rcptDate.innerText = sale.date;
-            if (rcptCustomer) rcptCustomer.innerText = sale.customer;
+            if (rcptCustomer) rcptCustomer.innerText = (sale.customer && sale.customer.trim()) ? sale.customer : 'Guest Member';
             if (rcptCashier) rcptCashier.innerText = sale.cashier || 'Staff';
             if (rcptTrainer) rcptTrainer.innerText = sale.trainer;
 
@@ -2971,6 +3069,47 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             renderSalesReports();
         }
 
+        function getConsolidatedItemKey(item) {
+            if (!item) return 'OTHERS';
+            if (isPtSessionItem(item)) return 'PT';
+
+            const name = (item.name || '').toLowerCase().trim();
+            const cat = (item.category || '').toLowerCase().trim();
+
+            if (name.includes('walk-in') || name.includes('walkin') || name.includes('walk in') || item.id === 'P01') {
+                return 'WALKIN';
+            }
+            if (cat.includes('membership') || name.includes('membership') || /\b(1|3|6|12)\s*month/i.test(name)) {
+                return 'MEMBERSHIP';
+            }
+            if (name.includes('1.5l') || name.includes('1.5 l')) {
+                return '1.5L';
+            }
+            if (name.includes('mineral water') || name.includes('mineral')) {
+                return 'MINERAL';
+            }
+            if (name.includes('100plus') || name.includes('100 plus')) {
+                return '100PLUS';
+            }
+            if (name.includes('extrajoss') || name.includes('extra joss')) {
+                return 'EXTRAJOSS';
+            }
+            if (name.includes('coffee')) {
+                return 'COFFEE';
+            }
+            if (name.includes('oatside')) {
+                return 'OATSIDE';
+            }
+            if (name.includes('t-shirt') || name.includes('tshirt') || name.includes('shirt')) {
+                return 'T-SHIRT';
+            }
+            if (name.includes('towel')) {
+                return 'TOWEL';
+            }
+
+            return 'OTHERS';
+        }
+
         function renderSalesReports() {
             const datePickerVal = document.getElementById('report-date-picker')?.value;
             let refDate = new Date();
@@ -3035,7 +3174,6 @@ h1, h2, h3, h4, h5, h6, .brand-text {
 
             const { labels, dataPoints } = getDynamicChartData(reportPeriod, periodSales, refDate);
 
-            // Chart rendering logic
             if (typeof Chart !== 'undefined') {
                 const chartCanvas = document.getElementById('salesChart');
                 if (chartCanvas) {
@@ -3090,7 +3228,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                 }
             }
 
-            // 1. Payment Method Summary Table
+            // Payment Method Breakdown
             const payTbody = document.getElementById('rep-pay-table-body');
             if (payTbody) {
                 let cashTotal = 0, transferTotal = 0, cardTotal = 0;
@@ -3137,7 +3275,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                 `;
             }
 
-            // 2. Item Sales Breakdown Table (Grouped & Ordered strictly)
+            // Item Sales Breakdown Table (Consolidated rate variations)
             const itemsTbody = document.getElementById('rep-items-table-body');
             const itemsTfoot = document.getElementById('rep-items-table-foot');
             if (itemsTbody) {
@@ -3146,66 +3284,78 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                 let totalCount = 0;
                 let totalAmount = 0;
 
+                const displayMap = {
+                    'WALKIN': { name: 'Walk-In', cat: 'Services' },
+                    'PT': { name: 'PT', cat: 'PT Sessions' },
+                    'MEMBERSHIP': { name: 'Membership', cat: 'Memberships' },
+                    'OTHERS': { name: 'Others', cat: 'Others' },
+                    'MINERAL': { name: 'Mineral Water', cat: 'Food & Beverages' },
+                    '1.5L': { name: 'Mineral Water 1.5L', cat: 'Food & Beverages' },
+                    '100PLUS': { name: '100Plus', cat: 'Food & Beverages' },
+                    'EXTRAJOSS': { name: 'ExtraJoss', cat: 'Food & Beverages' },
+                    'COFFEE': { name: 'Coffee', cat: 'Food & Beverages' },
+                    'OATSIDE': { name: 'Oatside', cat: 'Food & Beverages' },
+                    'T-SHIRT': { name: 'T-Shirt', cat: 'Apparel' },
+                    'TOWEL': { name: 'Towel', cat: 'Apparel' }
+                };
+
                 periodSales.forEach(s => {
                     if (s.items && Array.isArray(s.items)) {
                         s.items.forEach(item => {
-                            let name = item.name || 'Unknown Item';
-                            let cat = item.category || 'Others';
+                            if (!item.name || item.name.toLowerCase().includes('unknown')) return;
 
-                            // Check PT Session items for grouping under "PT"
                             if (isPtSessionItem(item)) {
                                 const bd = getPtPackageBreakdown(item.price);
                                 const ptFeeTotal = bd.ptFee * item.qty;
-                                const ptName = 'PT';
-                                if (!itemStats[ptName]) itemStats[ptName] = { count: 0, total: 0, cat: 'PT Sessions' };
-                                itemStats[ptName].count += item.qty;
-                                itemStats[ptName].total += ptFeeTotal;
+                                const key = 'PT';
+                                if (!itemStats[key]) itemStats[key] = { count: 0, total: 0, cat: displayMap[key].cat, name: displayMap[key].name };
+                                itemStats[key].count += item.qty;
+                                itemStats[key].total += ptFeeTotal;
                                 totalCount += item.qty;
                                 totalAmount += ptFeeTotal;
 
                                 if (bd.othersFee > 0) {
                                     const othersFeeTotal = bd.othersFee * item.qty;
-                                    const othersName = 'Others';
-                                    if (!itemStats[othersName]) itemStats[othersName] = { count: 0, total: 0, cat: 'Others' };
-                                    itemStats[othersName].count += item.qty;
-                                    itemStats[othersName].total += othersFeeTotal;
+                                    const oKey = 'OTHERS';
+                                    if (!itemStats[oKey]) itemStats[oKey] = { count: 0, total: 0, cat: displayMap[oKey].cat, name: displayMap[oKey].name };
+                                    itemStats[oKey].count += item.qty;
+                                    itemStats[oKey].total += othersFeeTotal;
                                     totalAmount += othersFeeTotal;
                                 }
                                 return;
                             }
 
-                            // Group 1, 3, 6, 12 Months Memberships under "Membership"
-                            if (cat === 'Memberships' || name.toLowerCase().includes('membership') || /\b(1|3|6|12)\s*month/i.test(name)) {
-                                name = 'Membership';
-                                cat = 'Memberships';
-                            }
+                            const key = getConsolidatedItemKey(item);
+                            const info = displayMap[key] || { name: item.name, cat: item.category || 'Others' };
+                            const itemTotal = item.price * item.qty;
 
-                            if (!itemStats[name]) itemStats[name] = { count: 0, total: 0, cat: cat };
-                            itemStats[name].count += item.qty;
-                            itemStats[name].total += (item.price * item.qty);
+                            if (!itemStats[key]) {
+                                itemStats[key] = { count: 0, total: 0, cat: info.cat, name: info.name };
+                            }
+                            itemStats[key].count += item.qty;
+                            itemStats[key].total += itemTotal;
                             totalCount += item.qty;
-                            totalAmount += (item.price * item.qty);
+                            totalAmount += itemTotal;
                         });
                     }
                 });
 
-                // Specified strict order list
                 const preferredOrder = [
-                    'Walk-In',
+                    'WALKIN',
                     'PT',
-                    'Membership',
-                    'Others',
-                    'Mineral Water',
-                    'Mineral Water 1.5L',
-                    '100Plus',
-                    'ExtraJoss',
-                    'Coffee',
-                    'Oatside',
-                    'T-Shirt',
-                    'Towel'
+                    'MEMBERSHIP',
+                    'OTHERS',
+                    'MINERAL',
+                    '1.5L',
+                    '100PLUS',
+                    'EXTRAJOSS',
+                    'COFFEE',
+                    'OATSIDE',
+                    'T-SHIRT',
+                    'TOWEL'
                 ];
 
-                const sortedItemNames = Object.keys(itemStats).sort((a, b) => {
+                const sortedKeys = Object.keys(itemStats).sort((a, b) => {
                     let idxA = preferredOrder.indexOf(a);
                     let idxB = preferredOrder.indexOf(b);
                     if (idxA === -1) idxA = 999;
@@ -3213,11 +3363,11 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                     return idxA - idxB;
                 });
 
-                sortedItemNames.forEach(itemName => {
-                    const stat = itemStats[itemName];
+                sortedKeys.forEach(key => {
+                    const stat = itemStats[key];
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td><strong>${itemName}</strong> <span style="font-size: 10px; color: var(--gold-primary);">(${stat.cat})</span></td>
+                        <td><strong>${stat.name}</strong> <span style="font-size: 10px; color: var(--gold-primary);">(${stat.cat})</span></td>
                         <td style="text-align: center;">${stat.count}</td>
                         <td style="text-align: right; font-weight: bold; color: var(--gold-light);">RM ${stat.total.toFixed(2)}</td>
                     `;
@@ -3235,7 +3385,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                 }
             }
 
-            // 3. PT Training & Trainer Sales Table
+            // Trainer Performance Table
             const trainerTbody = document.getElementById('rep-trainer-table-body');
             const trainerTfoot = document.getElementById('rep-trainer-table-foot');
             if (trainerTbody) {
@@ -3261,7 +3411,6 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                     trainerMtdPtFee[tName] = 0;
                 });
 
-                // Calculate PT Fee for selected report date / period
                 periodSales.forEach(s => {
                     if (s.items && Array.isArray(s.items)) {
                         s.items.forEach(item => {
@@ -3282,7 +3431,6 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                     }
                 });
 
-                // Calculate MTD PT Fee (Month-To-Date up to refDate)
                 const targetYear = refDate.getFullYear();
                 const targetMonth = refDate.getMonth();
                 const endOfRefDay = new Date(targetYear, targetMonth, refDate.getDate(), 23, 59, 59, 999).getTime();
@@ -3342,9 +3490,321 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                     `;
                 }
             }
+
+            // Monthly Matrix Table Render
+            const matrixWrapper = document.getElementById('monthly-matrix-wrapper');
+            const matrixBody = document.getElementById('rep-monthly-matrix-body');
+            const matrixFoot = document.getElementById('rep-monthly-matrix-foot');
+
+            if (reportPeriod === 'monthly' && matrixWrapper && matrixBody && matrixFoot) {
+                matrixWrapper.style.display = 'block';
+                matrixBody.innerHTML = '';
+                matrixFoot.innerHTML = '';
+
+                const year = refDate.getFullYear();
+                const month = refDate.getMonth();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+                const colTotals = {
+                    cash: 0, transfer: 0, card: 0, paymentTotal: 0,
+                    walkin: 0, pt: 0, others: 0, membership: 0, mineral: 0, mineral15l: 0,
+                    hundredPlus: 0, extrajoss: 0, coffee: 0, oatside: 0, tshirt: 0, towel: 0, salesTotal: 0
+                };
+
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const dayStr = String(d).padStart(2, '0') + '/' + String(month + 1).padStart(2, '0') + '/' + year;
+                    
+                    const daySales = sales.filter(s => {
+                        if (s.status === 'Voided') return false;
+                        const sDate = parseSaleDate(s.date);
+                        return sDate.getFullYear() === year && sDate.getMonth() === month && sDate.getDate() === d;
+                    });
+
+                    let dayCash = 0, dayTransfer = 0, dayCard = 0;
+                    let dayWalkin = 0, dayPt = 0, dayOthers = 0, dayMembership = 0, dayMineral = 0, day15l = 0;
+                    let day100plus = 0, dayExtrajoss = 0, dayCoffee = 0, dayOatside = 0, dayTshirt = 0, dayTowel = 0;
+
+                    daySales.forEach(s => {
+                        const paidAmt = parseFloat(s.paidAmount !== undefined ? s.paidAmount : s.total) || 0;
+                        const methodStr = s.method || 'Cash';
+                        if (methodStr.startsWith('Partial')) {
+                            const parts = methodStr.replace('Partial (', '').replace(')', '').split(' / ');
+                            parts.forEach(p => {
+                                const [methodName, amtStr] = p.split(': RM');
+                                const amt = parseFloat(amtStr) || 0;
+                                if (methodName.includes('Cash')) dayCash += amt;
+                                else if (methodName.includes('Online')) dayTransfer += amt;
+                                else if (methodName.includes('Card') || methodName.includes('Debit')) dayCard += amt;
+                            });
+                        } else if (methodStr === 'Cash') {
+                            dayCash += paidAmt;
+                        } else if (methodStr === 'Online Transfer') {
+                            dayTransfer += paidAmt;
+                        } else if (methodStr.includes('Card')) {
+                            dayCard += paidAmt;
+                        } else {
+                            dayCash += paidAmt;
+                        }
+
+                        if (s.items && Array.isArray(s.items)) {
+                            s.items.forEach(item => {
+                                const itemPrice = parseFloat(item.price) || 0;
+                                const itemQty = parseInt(item.qty, 10) || 1;
+                                if (isPtSessionItem(item)) {
+                                    const bd = getPtPackageBreakdown(itemPrice);
+                                    dayPt += (bd.ptFee || 0) * itemQty;
+                                    if ((bd.othersFee || 0) > 0) dayOthers += (bd.othersFee || 0) * itemQty;
+                                    return;
+                                }
+                                const k = getConsolidatedItemKey(item);
+                                const amt = itemPrice * itemQty;
+                                if (k === 'WALKIN') dayWalkin += amt;
+                                else if (k === 'MEMBERSHIP') dayMembership += amt;
+                                else if (k === 'MINERAL') dayMineral += amt;
+                                else if (k === '1.5L') day15l += amt;
+                                else if (k === '100PLUS') day100plus += amt;
+                                else if (k === 'EXTRAJOSS') dayExtrajoss += amt;
+                                else if (k === 'COFFEE') dayCoffee += amt;
+                                else if (k === 'OATSIDE') dayOatside += amt;
+                                else if (k === 'T-SHIRT') dayTshirt += amt;
+                                else if (k === 'TOWEL') dayTowel += amt;
+                                else dayOthers += amt;
+                            });
+                        }
+                    });
+
+                    const dayPaymentTotal = (dayCash || 0) + (dayTransfer || 0) + (dayCard || 0);
+                    const daySalesTotal = (dayWalkin || 0) + (dayPt || 0) + (dayOthers || 0) + (dayMembership || 0) + (dayMineral || 0) + (day15l || 0) + (day100plus || 0) + (dayExtrajoss || 0) + (dayCoffee || 0) + (dayOatside || 0) + (dayTshirt || 0) + (dayTowel || 0);
+
+                    colTotals.cash += dayCash;
+                    colTotals.transfer += dayTransfer;
+                    colTotals.card += dayCard;
+                    colTotals.paymentTotal += dayPaymentTotal;
+                    colTotals.walkin += dayWalkin;
+                    colTotals.pt += dayPt;
+                    colTotals.others += dayOthers;
+                    colTotals.membership += dayMembership;
+                    colTotals.mineral += dayMineral;
+                    colTotals.mineral15l += day15l;
+                    colTotals.hundredPlus += day100plus;
+                    colTotals.extrajoss += dayExtrajoss;
+                    colTotals.coffee += dayCoffee;
+                    colTotals.oatside += dayOatside;
+                    colTotals.tshirt += dayTshirt;
+                    colTotals.towel += dayTowel;
+                    colTotals.salesTotal += daySalesTotal;
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${dayStr}</strong></td>
+                        <td style="text-align: right;">${dayCash.toFixed(2)}</td>
+                        <td style="text-align: right;">${dayTransfer.toFixed(2)}</td>
+                        <td style="text-align: right;">${dayCard.toFixed(2)}</td>
+                        <td style="text-align: right; font-weight: bold; background: rgba(59, 130, 246, 0.1); color: #60a5fa;">${dayPaymentTotal.toFixed(2)}</td>
+                        <td style="text-align: right;">${dayWalkin.toFixed(2)}</td>
+                        <td style="text-align: right;">${dayPt.toFixed(2)}</td>
+                        <td style="text-align: right;">${dayOthers.toFixed(2)}</td>
+                        <td style="text-align: right;">${dayMembership.toFixed(2)}</td>
+                        <td style="text-align: right;">${dayMineral.toFixed(2)}</td>
+                        <td style="text-align: right;">${day15l.toFixed(2)}</td>
+                        <td style="text-align: right;">${day100plus.toFixed(2)}</td>
+                        <td style="text-align: right;">${dayExtrajoss.toFixed(2)}</td>
+                        <td style="text-align: right;">${dayCoffee.toFixed(2)}</td>
+                        <td style="text-align: right;">${dayOatside.toFixed(2)}</td>
+                        <td style="text-align: right;">${dayTshirt.toFixed(2)}</td>
+                        <td style="text-align: right;">${dayTowel.toFixed(2)}</td>
+                        <td style="text-align: right; font-weight: bold; background: rgba(16, 185, 129, 0.1); color: var(--success);">${(daySalesTotal || 0).toFixed(2)}</td>
+                    `;
+                    matrixBody.appendChild(tr);
+                }
+
+                matrixFoot.innerHTML = `
+                    <tr style="background: rgba(212, 175, 55, 0.2); font-weight: 800; font-size: 12px; color: var(--gold-light);">
+                        <td>TOTAL</td>
+                        <td style="text-align: right;">${colTotals.cash.toFixed(2)}</td>
+                        <td style="text-align: right;">${colTotals.transfer.toFixed(2)}</td>
+                        <td style="text-align: right;">${colTotals.card.toFixed(2)}</td>
+                        <td style="text-align: right; background: rgba(59, 130, 246, 0.25); color: #93c5fd;">${colTotals.paymentTotal.toFixed(2)}</td>
+                        <td style="text-align: right;">${colTotals.walkin.toFixed(2)}</td>
+                        <td style="text-align: right;">${colTotals.pt.toFixed(2)}</td>
+                        <td style="text-align: right;">${colTotals.others.toFixed(2)}</td>
+                        <td style="text-align: right;">${colTotals.membership.toFixed(2)}</td>
+                        <td style="text-align: right;">${colTotals.mineral.toFixed(2)}</td>
+                        <td style="text-align: right;">${colTotals.mineral15l.toFixed(2)}</td>
+                        <td style="text-align: right;">${colTotals.hundredPlus.toFixed(2)}</td>
+                        <td style="text-align: right;">${colTotals.extrajoss.toFixed(2)}</td>
+                        <td style="text-align: right;">${colTotals.coffee.toFixed(2)}</td>
+                        <td style="text-align: right;">${colTotals.oatside.toFixed(2)}</td>
+                        <td style="text-align: right;">${colTotals.tshirt.toFixed(2)}</td>
+                        <td style="text-align: right;">${colTotals.towel.toFixed(2)}</td>
+                        <td style="text-align: right; background: rgba(16, 185, 129, 0.25); color: #6ee7b7;">${colTotals.salesTotal.toFixed(2)}</td>
+                    </tr>
+                `;
+            } else if (matrixWrapper) {
+                matrixWrapper.style.display = 'none';
+            }
         }
 
         function exportReportCSV() {
+            if (reportPeriod === 'monthly') {
+                const datePickerVal = document.getElementById('report-date-picker')?.value;
+                let refDate = new Date();
+                if (datePickerVal) {
+                    const [pYear, pMonth, pDay] = datePickerVal.split('-').map(Number);
+                    refDate = new Date(pYear, pMonth - 1, pDay);
+                }
+
+                const year = refDate.getFullYear();
+                const month = refDate.getMonth();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+                let csvContent = "data:text/csv;charset=utf-8,";
+                csvContent += "DATE,CASH,TRANSFER,CARD,PAYMENT TOTAL,WALKIN,PT,OTHERS,MEMBERSHIP,MINERAL,1.5L,100PLUS,EXTRAJOSS,COFFEE,OATSIDE,T-SHIRT,TOWEL,SALES TOTAL\n";
+
+                const colTotals = {
+                    cash: 0, transfer: 0, card: 0, paymentTotal: 0,
+                    walkin: 0, pt: 0, others: 0, membership: 0, mineral: 0, mineral15l: 0,
+                    hundredPlus: 0, extrajoss: 0, coffee: 0, oatside: 0, tshirt: 0, towel: 0, salesTotal: 0
+                };
+
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const dayStr = String(d).padStart(2, '0') + '/' + String(month + 1).padStart(2, '0') + '/' + year;
+                    
+                    const daySales = sales.filter(s => {
+                        if (s.status === 'Voided') return false;
+                        const sDate = parseSaleDate(s.date);
+                        return sDate.getFullYear() === year && sDate.getMonth() === month && sDate.getDate() === d;
+                    });
+
+                    let dayCash = 0, dayTransfer = 0, dayCard = 0;
+                    let dayWalkin = 0, dayPt = 0, dayOthers = 0, dayMembership = 0, dayMineral = 0, day15l = 0;
+                    let day100plus = 0, dayExtrajoss = 0, dayCoffee = 0, dayOatside = 0, dayTshirt = 0, dayTowel = 0;
+
+                    daySales.forEach(s => {
+                        const paidAmt = parseFloat(s.paidAmount !== undefined ? s.paidAmount : s.total) || 0;
+                        const methodStr = s.method || 'Cash';
+                        if (methodStr.startsWith('Partial')) {
+                            const parts = methodStr.replace('Partial (', '').replace(')', '').split(' / ');
+                            parts.forEach(p => {
+                                const [methodName, amtStr] = p.split(': RM');
+                                const amt = parseFloat(amtStr) || 0;
+                                if (methodName.includes('Cash')) dayCash += amt;
+                                else if (methodName.includes('Online')) dayTransfer += amt;
+                                else if (methodName.includes('Card') || methodName.includes('Debit')) dayCard += amt;
+                            });
+                        } else if (methodStr === 'Cash') {
+                            dayCash += paidAmt;
+                        } else if (methodStr === 'Online Transfer') {
+                            dayTransfer += paidAmt;
+                        } else if (methodStr.includes('Card')) {
+                            dayCard += paidAmt;
+                        } else {
+                            dayCash += paidAmt;
+                        }
+
+                        if (s.items && Array.isArray(s.items)) {
+                            s.items.forEach(item => {
+                                const itemPrice = parseFloat(item.price) || 0;
+                                const itemQty = parseInt(item.qty, 10) || 1;
+                                if (isPtSessionItem(item)) {
+                                    const bd = getPtPackageBreakdown(itemPrice);
+                                    dayPt += (bd.ptFee || 0) * itemQty;
+                                    if ((bd.othersFee || 0) > 0) dayOthers += (bd.othersFee || 0) * itemQty;
+                                    return;
+                                }
+                                const k = getConsolidatedItemKey(item);
+                                const amt = itemPrice * itemQty;
+                                if (k === 'WALKIN') dayWalkin += amt;
+                                else if (k === 'MEMBERSHIP') dayMembership += amt;
+                                else if (k === 'MINERAL') dayMineral += amt;
+                                else if (k === '1.5L') day15l += amt;
+                                else if (k === '100PLUS') day100plus += amt;
+                                else if (k === 'EXTRAJOSS') dayExtrajoss += amt;
+                                else if (k === 'COFFEE') dayCoffee += amt;
+                                else if (k === 'OATSIDE') dayOatside += amt;
+                                else if (k === 'T-SHIRT') dayTshirt += amt;
+                                else if (k === 'TOWEL') dayTowel += amt;
+                                else dayOthers += amt;
+                            });
+                        }
+                    });
+
+                    const dayPaymentTotal = (dayCash || 0) + (dayTransfer || 0) + (dayCard || 0);
+                    const daySalesTotal = (dayWalkin || 0) + (dayPt || 0) + (dayOthers || 0) + (dayMembership || 0) + (dayMineral || 0) + (day15l || 0) + (day100plus || 0) + (dayExtrajoss || 0) + (dayCoffee || 0) + (dayOatside || 0) + (dayTshirt || 0) + (dayTowel || 0);
+
+                    colTotals.cash += dayCash;
+                    colTotals.transfer += dayTransfer;
+                    colTotals.card += dayCard;
+                    colTotals.paymentTotal += dayPaymentTotal;
+                    colTotals.walkin += dayWalkin;
+                    colTotals.pt += dayPt;
+                    colTotals.others += dayOthers;
+                    colTotals.membership += dayMembership;
+                    colTotals.mineral += dayMineral;
+                    colTotals.mineral15l += day15l;
+                    colTotals.hundredPlus += day100plus;
+                    colTotals.extrajoss += dayExtrajoss;
+                    colTotals.coffee += dayCoffee;
+                    colTotals.oatside += dayOatside;
+                    colTotals.tshirt += dayTshirt;
+                    colTotals.towel += dayTowel;
+                    colTotals.salesTotal += daySalesTotal;
+
+                    const row = [
+                        dayStr,
+                        dayCash.toFixed(2),
+                        dayTransfer.toFixed(2),
+                        dayCard.toFixed(2),
+                        dayPaymentTotal.toFixed(2),
+                        dayWalkin.toFixed(2),
+                        dayPt.toFixed(2),
+                        dayOthers.toFixed(2),
+                        dayMembership.toFixed(2),
+                        dayMineral.toFixed(2),
+                        day15l.toFixed(2),
+                        day100plus.toFixed(2),
+                        dayExtrajoss.toFixed(2),
+                        dayCoffee.toFixed(2),
+                        dayOatside.toFixed(2),
+                        dayTshirt.toFixed(2),
+                        dayTowel.toFixed(2),
+                        (daySalesTotal || 0).toFixed(2)
+                    ].join(",");
+                    csvContent += row + "\n";
+                }
+
+                const totalRow = [
+                    "TOTAL",
+                    colTotals.cash.toFixed(2),
+                    colTotals.transfer.toFixed(2),
+                    colTotals.card.toFixed(2),
+                    colTotals.paymentTotal.toFixed(2),
+                    colTotals.walkin.toFixed(2),
+                    colTotals.pt.toFixed(2),
+                    colTotals.others.toFixed(2),
+                    colTotals.membership.toFixed(2),
+                    colTotals.mineral.toFixed(2),
+                    colTotals.mineral15l.toFixed(2),
+                    colTotals.hundredPlus.toFixed(2),
+                    colTotals.extrajoss.toFixed(2),
+                    colTotals.coffee.toFixed(2),
+                    colTotals.oatside.toFixed(2),
+                    colTotals.tshirt.toFixed(2),
+                    colTotals.towel.toFixed(2),
+                    colTotals.salesTotal.toFixed(2)
+                ].join(",");
+                csvContent += totalRow + "\n";
+
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", `Monthly_Sales_Matrix_${String(month + 1).padStart(2, '0')}_${year}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                return;
+            }
+
             if (!sales || sales.length === 0) {
                 showAlertModal('No sales data available to export.');
                 return;
@@ -3383,6 +3843,61 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             document.body.removeChild(link);
         }
 
+        async function copyReportScreenshot() {
+            const reportArea = document.getElementById('report-tables-wrapper');
+            if (!reportArea) return;
+
+            try {
+                if (typeof html2canvas === 'undefined') {
+                    showAlertModal('Screenshot component is loading, please try again in a moment.');
+                    return;
+                }
+
+                const canvas = await html2canvas(reportArea, {
+                    backgroundColor: '#0a0b0d',
+                    scale: 2
+                });
+
+                const imgUrl = canvas.toDataURL('image/png');
+                
+                const imgContainer = document.getElementById('screenshot-img-container');
+                const statusText = document.getElementById('screenshot-status-text');
+                const downloadBtn = document.getElementById('screenshot-download-btn');
+
+                if (imgContainer) {
+                    imgContainer.innerHTML = `<img src="${imgUrl}" style="max-width: 100%; height: auto; border-radius: 6px; border: 1px solid var(--border-color);" alt="Report Screenshot">`;
+                }
+                if (downloadBtn) {
+                    downloadBtn.href = imgUrl;
+                }
+
+                let copied = false;
+                if (navigator.clipboard && window.ClipboardItem) {
+                    try {
+                        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+                        if (blob) {
+                            const item = new ClipboardItem({ 'image/png': blob });
+                            await navigator.clipboard.write([item]);
+                            copied = true;
+                        }
+                    } catch (clipErr) {
+                        // Suppress console exception when iFrame permissions policy blocks navigator.clipboard.write
+                        copied = false;
+                    }
+                }
+
+                if (copied) {
+                    showAlertModal('Report tables screenshot copied to clipboard!');
+                } else {
+                    if (statusText) statusText.innerText = 'Clipboard write restricted by browser policy. Right-click or long-press the image below to copy or download it directly.';
+                    document.getElementById('screenshot-modal')?.classList.add('active');
+                }
+            } catch (err) {
+                console.error('Screenshot capture error:', err);
+                showAlertModal('Error capturing report screenshot.');
+            }
+        }
+
         function onReportDateChange() {
             renderSalesReports();
         }
@@ -3400,17 +3915,22 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             const canEdit = isAdminUser();
 
             products.forEach(p => {
+                const priceStr = (p.prices && p.prices.length > 0)
+                    ? p.prices.map(pr => `RM ${pr.toFixed(2)}`).join(' / ') + ((p.allowCustom || p.isCustomPrice) ? ' / Custom' : '')
+                    : ((p.isCustomPrice || p.allowCustom) ? 'Custom Price' : `RM ${p.price.toFixed(2)}`);
+
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><strong>${p.name}</strong></td>
                     <td><span class="badge badge-gold">${p.category}</span></td>
-                    <td>RM ${p.price.toFixed(2)}</td>
+                    <td style="font-size: 12px; font-weight: 600;">${priceStr}</td>
                     <td>RM ${p.cost.toFixed(2)}</td>
                     <td>${p.stock > 900 ? 'Infinite' : p.stock}</td>
                     <td>
                         ${canEdit ? `
-                            <button class="btn-outline" style="padding: 4px 8px; font-size: 11px;" onclick="openProductModal('${p.id}')"><i class="fa-solid fa-pen"></i></button>
-                            <button class="btn-outline" style="padding: 4px 8px; font-size: 11px; color: var(--danger);" onclick="deleteProduct('${p.id}')"><i class="fa-solid fa-trash"></i></button>
+                            <button class="btn-outline" style="padding: 4px 10px; font-size: 11px;" onclick="openProductModal('${p.id}')">
+                                <i class="fa-solid fa-pen"></i> Edit
+                            </button>
                         ` : `<span style="color: var(--text-muted); font-size: 11px;">View Only</span>`}
                     </td>
                 `;
@@ -3446,6 +3966,9 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                             <div style="display: flex; gap: 4px; align-items: center;">
                                 <button class="btn-outline" style="padding: 2px 6px;" onclick="adjustStock('${p.id}', -5)">-5</button>
                                 <button class="btn-outline" style="padding: 2px 6px;" onclick="adjustStock('${p.id}', 10)">+10</button>
+                                <button class="btn-outline" style="padding: 2px 8px; color: var(--gold-primary); border-color: var(--gold-primary);" onclick="openCustomStockModal('${p.id}')" title="Set exact stock quantity">
+                                    <i class="fa-solid fa-pen-to-square"></i> Set Qty
+                                </button>
                             </div>
                         ` : `<span style="color: var(--text-muted); font-size: 11px;">View Only</span>`) : 'N/A'}
                     </td>
@@ -3460,6 +3983,40 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             if (totEl) totEl.innerText = products.length;
             if (lowEl) lowEl.innerText = lowStockCount;
             if (valEl) valEl.innerText = `RM ${totalValuation.toFixed(2)}`;
+        }
+
+        function openCustomStockModal(id) {
+            if (!isAdminUser()) {
+                showAlertModal('Access Denied: Admin or Owner privileges required.');
+                return;
+            }
+            const p = products.find(item => item.id === id);
+            if (!p) return;
+            document.getElementById('stock-p-id').value = p.id;
+            document.getElementById('stock-custom-input').value = p.stock;
+            document.getElementById('stock-modal-title').innerText = `Set Stock: ${p.name}`;
+            document.getElementById('stock-modal')?.classList.add('active');
+            setTimeout(() => document.getElementById('stock-custom-input')?.focus(), 100);
+        }
+
+        async function saveCustomStock(e) {
+            if (e) e.preventDefault();
+            if (!isAdminUser()) return;
+            const id = document.getElementById('stock-p-id')?.value;
+            const newStock = parseInt(document.getElementById('stock-custom-input')?.value, 10);
+            if (isNaN(newStock) || newStock < 0) return;
+
+            const p = products.find(item => item.id === id);
+            if (p) {
+                p.stock = newStock;
+                saveData();
+                if (supabaseClient) {
+                    await supabaseClient.from('products').update({ stock: p.stock }).eq('id', p.id);
+                }
+                closeModal('stock-modal');
+                renderInventoryTable();
+                renderPosProducts();
+            }
         }
 
         function openProductModal(editId = null) {
@@ -3479,10 +4036,17 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                 document.getElementById('p-form-price').value = p.price;
                 document.getElementById('p-form-cost').value = p.cost;
                 document.getElementById('p-form-stock').value = p.stock;
+                
+                const extraPricesStr = (p.prices && p.prices.length > 1) ? p.prices.slice(1).join(', ') : '';
+                document.getElementById('p-form-extra-prices').value = extraPricesStr;
+                document.getElementById('p-form-allow-custom').checked = Boolean(p.allowCustom || p.isCustomPrice);
             } else {
                 if (title) title.innerText = 'Add New Product';
                 document.getElementById('product-form')?.reset();
                 document.getElementById('p-form-id').value = '';
+                document.getElementById('p-form-stock').value = '999';
+                document.getElementById('p-form-extra-prices').value = '';
+                document.getElementById('p-form-allow-custom').checked = false;
             }
 
             modal?.classList.add('active');
@@ -3499,9 +4063,21 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             const pId = document.getElementById('p-form-id')?.value;
             const name = document.getElementById('p-form-name')?.value.trim();
             const category = document.getElementById('p-form-cat')?.value;
-            const price = parseFloat(document.getElementById('p-form-price')?.value) || 0;
+            const primaryPrice = parseFloat(document.getElementById('p-form-price')?.value) || 0;
             const cost = parseFloat(document.getElementById('p-form-cost')?.value) || 0;
             const stock = parseInt(document.getElementById('p-form-stock')?.value, 10) || 0;
+            const extraPricesInput = document.getElementById('p-form-extra-prices')?.value || '';
+            const allowCustom = document.getElementById('p-form-allow-custom')?.checked || false;
+
+            const extraPrices = extraPricesInput
+                .split(',')
+                .map(v => parseFloat(v.trim()))
+                .filter(v => !isNaN(v) && v >= 0);
+
+            let compiledPrices = [primaryPrice];
+            if (extraPrices.length > 0) {
+                compiledPrices = [primaryPrice, ...extraPrices];
+            }
 
             let updatedProd = null;
 
@@ -3510,9 +4086,12 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                 if (p) {
                     p.name = name;
                     p.category = category;
-                    p.price = price;
+                    p.price = primaryPrice;
+                    p.prices = compiledPrices;
                     p.cost = cost;
                     p.stock = stock;
+                    p.allowCustom = allowCustom;
+                    p.isCustomPrice = allowCustom;
                     updatedProd = p;
                 }
             } else {
@@ -3521,10 +4100,13 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                     id: newId,
                     name: name,
                     category: category,
-                    price: price,
+                    price: primaryPrice,
+                    prices: compiledPrices,
                     cost: cost,
                     stock: stock,
-                    comm: 60
+                    comm: 60,
+                    allowCustom: allowCustom,
+                    isCustomPrice: allowCustom
                 };
                 products.push(updatedProd);
             }
@@ -3541,24 +4123,12 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                     cost: updatedProd.cost,
                     stock: updatedProd.stock,
                     comm: updatedProd.comm || 60,
-                    is_custom_price: updatedProd.isCustomPrice || false
+                    is_custom_price: updatedProd.isCustomPrice || false,
+                    allow_custom: updatedProd.allowCustom || false
                 });
             }
 
             closeModal('product-modal');
-            renderProductsTable();
-            renderPosProducts();
-        }
-
-        async function deleteProduct(id) {
-            if (!isAdminUser()) return;
-            products = products.filter(p => p.id !== id);
-            saveData();
-
-            if (supabaseClient) {
-                await supabaseClient.from('products').delete().eq('id', id);
-            }
-
             renderProductsTable();
             renderPosProducts();
         }
@@ -3708,12 +4278,14 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                 const tierRateLabel = (tierRate * 100).toFixed(1).replace('.0', '') + '% Share';
                 const trainerEarnings = salePtFee * tierRate;
 
+                const custDisplay = (s.customer && s.customer.trim()) ? s.customer : 'Guest Member';
+
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${s.date}</td>
                     <td><strong>${s.id}</strong></td>
                     <td><span class="badge badge-gold">${trainerNamesStr}</span></td>
-                    <td>${s.customer}</td>
+                    <td><strong>${custDisplay}</strong></td>
                     <td>RM ${s.total.toFixed(2)} <span style="font-size: 10px; color: var(--text-muted);">(PT Fee: RM ${salePtFee.toFixed(2)})</span></td>
                     <td><span class="badge badge-success">${tierRateLabel}</span></td>
                     <td style="color: var(--gold-light); font-weight: bold;">RM ${trainerEarnings.toFixed(2)}</td>
@@ -3752,6 +4324,24 @@ h1, h2, h3, h4, h5, h6, .brand-text {
 
             const sortOrder = document.getElementById('history-sort-order')?.value || 'desc';
             filteredSales.sort((a, b) => {
+                if (sortOrder === 'Completed') {
+                    const isAComp = (a.status === 'Completed' || a.status === 'Paid') ? 0 : 1;
+                    const isBComp = (b.status === 'Completed' || b.status === 'Paid') ? 0 : 1;
+                    if (isAComp !== isBComp) return isAComp - isBComp;
+                    return parseSaleDate(b.date).getTime() - parseSaleDate(a.date).getTime();
+                }
+                if (sortOrder === 'Partial') {
+                    const isAPart = (a.status === 'Partial' || (a.balanceDue > 0.01 && a.status !== 'Voided')) ? 0 : 1;
+                    const isBPart = (b.status === 'Partial' || (b.balanceDue > 0.01 && b.status !== 'Voided')) ? 0 : 1;
+                    if (isAPart !== isBPart) return isAPart - isBPart;
+                    return parseSaleDate(b.date).getTime() - parseSaleDate(a.date).getTime();
+                }
+                if (sortOrder === 'Voided') {
+                    const isAVoid = (a.status === 'Voided') ? 0 : 1;
+                    const isBVoid = (b.status === 'Voided') ? 0 : 1;
+                    if (isAVoid !== isBVoid) return isAVoid - isBVoid;
+                    return parseSaleDate(b.date).getTime() - parseSaleDate(a.date).getTime();
+                }
                 const timeA = parseSaleDate(a.date).getTime();
                 const timeB = parseSaleDate(b.date).getTime();
                 return sortOrder === 'asc' ? (timeA - timeB) : (timeB - timeA);
@@ -3763,7 +4353,6 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             }
 
             const canVoid = isAdminUser();
-            const canDelete = isOwnerUser();
 
             filteredSales.forEach(s => {
                 const totalItemsQty = s.items ? s.items.reduce((sum, item) => sum + item.qty, 0) : 0;
@@ -3783,10 +4372,12 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                     statusBadgeHTML = `<span class="badge badge-warning" title="Due: RM ${dueVal.toFixed(2)}">Partial (Due: RM${dueVal.toFixed(2)})</span>`;
                 }
 
+                const customerNameDisplay = (s.customer && s.customer.trim()) ? s.customer : 'Guest Member';
+
                 tr.innerHTML = `
                     <td><strong>${s.id}</strong></td>
                     <td>${s.date}</td>
-                    <td>${s.customer}</td>
+                    <td><strong>${customerNameDisplay}</strong></td>
                     <td>${s.cashier || 'Staff'}</td>
                     <td>${totalItemsQty} item(s)</td>
                     <td><span class="badge badge-gold">${s.method}</span></td>
@@ -3809,7 +4400,6 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                                     <i class="fa-solid fa-rotate-left"></i> Void
                                 </button>
                             ` : ''}
-                            
                         </div>
                     </td>
                 `;
@@ -3833,7 +4423,6 @@ h1, h2, h3, h4, h5, h6, .brand-text {
 
             sale.status = 'Voided';
 
-            // Restore product stock for voided non-service items
             if (sale.items && Array.isArray(sale.items)) {
                 sale.items.forEach(item => {
                     const p = products.find(prod => prod.id === item.id);
@@ -3857,24 +4446,6 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             renderInventoryTable();
             updateHeaderStats();
             showAlertModal(`Transaction ${id} has been voided and items restored to inventory.`);
-        }
-
-        async function deleteSaleTransaction(id) {
-            if (!isOwnerUser()) {
-                showAlertModal('Access Denied: Only System Owners can permanently delete sale records.');
-                return;
-            }
-
-            sales = sales.filter(s => s.id !== id);
-            saveData();
-
-            if (supabaseClient) {
-                await supabaseClient.from('sales').delete().eq('id', id);
-            }
-
-            renderHistoryTable();
-            updateHeaderStats();
-            showAlertModal(`Transaction ${id} deleted permanently.`);
         }
 
         function clearHistoryDateFilter() {
@@ -4090,7 +4661,8 @@ h1, h2, h3, h4, h5, h6, .brand-text {
                     cost: p.cost,
                     stock: p.stock,
                     comm: p.comm,
-                    is_custom_price: p.isCustomPrice || false
+                    is_custom_price: p.isCustomPrice || false,
+                    allow_custom: p.allowCustom || false
                 }));
                 await supabaseClient.from('products').upsert(formattedProds);
 
@@ -4176,8 +4748,8 @@ h1, h2, h3, h4, h5, h6, .brand-text {
             const selectedPrice = targetMembershipProduct.prices[index];
             const isPromo = index > 0;
             const rateLabels = targetMembershipProduct.category === 'Memberships'
-                ? ['Standard', 'Promo', 'RM105 Special']
-                : ['Rate 1', 'Rate 2', 'Rate 3'];
+                ? ['Standard', 'Promo', 'Special Rate']
+                : ['Rate 1', 'Rate 2', 'Rate 3', 'Rate 4', 'Rate 5'];
             const tag = rateLabels[index] || `Rate ${index + 1}`;
             const itemLabel = isPromo ? `${targetMembershipProduct.name} (${tag})` : targetMembershipProduct.name;
 
