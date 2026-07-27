@@ -3899,12 +3899,30 @@
         }
 
         function onReportDateChange() {
+            reportPeriod = 'daily';
+            document.querySelectorAll('#view-reports .btn-outline').forEach(b => {
+                b.style.borderColor = 'var(--border-color)';
+                b.style.color = 'var(--text-muted)';
+                if (b.textContent.trim().toLowerCase() === 'daily') {
+                    b.style.borderColor = 'var(--gold-primary)';
+                    b.style.color = 'var(--gold-light)';
+                }
+            });
             renderSalesReports();
         }
 
         function clearReportDateFilter() {
             const dp = document.getElementById('report-date-picker');
             if (dp) dp.value = '';
+            reportPeriod = 'daily';
+            document.querySelectorAll('#view-reports .btn-outline').forEach(b => {
+                b.style.borderColor = 'var(--border-color)';
+                b.style.color = 'var(--text-muted)';
+                if (b.textContent.trim().toLowerCase() === 'daily') {
+                    b.style.borderColor = 'var(--gold-primary)';
+                    b.style.color = 'var(--gold-light)';
+                }
+            });
             renderSalesReports();
         }
 
