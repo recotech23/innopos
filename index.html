@@ -1644,6 +1644,8 @@
                 return;
             }
             isReorderMode = !isReorderMode;
+            cleanupDragStyles();
+
             const btn = document.getElementById('btn-reorder-mode');
             const btnText = document.getElementById('reorder-btn-text');
             const banner = document.getElementById('reorder-banner');
@@ -1700,54 +1702,83 @@
         function handleDragStart(e, id) {
             if (!isReorderMode) return;
             draggedItemId = id;
-            e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/plain', id);
-            e.currentTarget.style.opacity = '0.4';
+            if (e.dataTransfer) {
+                e.dataTransfer.effectAllowed = 'move';
+                try {
+                    e.dataTransfer.setData('text/plain', id);
+                } catch (err) {}
+            }
+            setTimeout(() => {
+                if (e.target && isReorderMode) {
+                    e.target.style.opacity = '0.35';
+                }
+            }, 0);
         }
 
         function handleDragOver(e) {
             if (!isReorderMode) return;
             e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
+            if (e.dataTransfer) {
+                e.dataTransfer.dropEffect = 'move';
+            }
         }
 
         function handleDragEnter(e, cardEl) {
-            if (!isReorderMode) return;
-            cardEl.style.borderColor = 'var(--gold-primary)';
-            cardEl.style.transform = 'scale(1.03)';
+            if (!isReorderMode || !draggedItemId) return;
+            e.preventDefault();
+            if (cardEl.dataset.productId !== draggedItemId) {
+                cardEl.style.borderColor = 'var(--gold-light)';
+                cardEl.style.background = 'rgba(212, 175, 55, 0.15)';
+            }
         }
 
         function handleDragLeave(e, cardEl) {
             if (!isReorderMode) return;
-            cardEl.style.borderColor = 'var(--border-color)';
-            cardEl.style.transform = '';
+            if (e.relatedTarget && cardEl.contains(e.relatedTarget)) return;
+            cardEl.style.borderColor = 'var(--gold-primary)';
+            cardEl.style.background = 'var(--bg-card)';
         }
 
         function handleDrop(e, targetId) {
-            if (!isReorderMode || !draggedItemId || draggedItemId === targetId) return;
+            if (!isReorderMode) return;
             e.preventDefault();
+            e.stopPropagation();
 
-            const fromIdx = products.findIndex(p => p.id === draggedItemId);
+            const fromId = draggedItemId;
+            draggedItemId = null;
+            cleanupDragStyles();
+
+            if (!fromId || fromId === targetId) return;
+
+            const fromIdx = products.findIndex(p => p.id === fromId);
             const toIdx = products.findIndex(p => p.id === targetId);
 
             if (fromIdx !== -1 && toIdx !== -1) {
                 const [moved] = products.splice(fromIdx, 1);
                 products.splice(toIdx, 0, moved);
                 saveData();
-                renderPosProducts();
+                setTimeout(() => {
+                    renderPosProducts();
+                }, 40);
             }
         }
 
         function handleDragEnd(e) {
+            cleanupDragStyles();
+        }
+
+        function cleanupDragStyles() {
             draggedItemId = null;
-            if (e.currentTarget) {
-                e.currentTarget.style.opacity = '1';
-                e.currentTarget.style.transform = '';
-            }
             document.querySelectorAll('.product-card').forEach(c => {
-                c.style.borderColor = '';
-                c.style.transform = '';
                 c.style.opacity = '1';
+                c.style.transform = '';
+                if (isReorderMode) {
+                    c.style.borderColor = 'var(--gold-primary)';
+                    c.style.background = 'var(--bg-card)';
+                } else {
+                    c.style.borderColor = '';
+                    c.style.background = '';
+                }
             });
         }
 
@@ -1757,9 +1788,7 @@
                 for (let i = 0; i < products.length; i++) {
                     await supabaseClient.from('products').update({ sort_order: i + 1 }).eq('id', products[i].id);
                 }
-            } catch (e) {
-                // Silently ignore if sort_order column does not exist in schema
-            }
+            } catch (e) {}
         }
 
         function renderPosProducts() {
@@ -1783,6 +1812,7 @@
             filtered.forEach(p => {
                 const card = document.createElement('div');
                 card.className = 'product-card';
+                card.dataset.productId = p.id;
 
                 const isServiceOrMembership = p.category === 'Memberships' || p.category === 'PT Sessions' || p.category === 'Services' || p.category === 'Others';
                 const isLowStock = p.stock < 10 && !isServiceOrMembership;
@@ -1805,20 +1835,20 @@
                     card.ondragend = (e) => handleDragEnd(e);
 
                     card.innerHTML = `
-                        <div>
+                        <div style="pointer-events: none; user-select: none;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                                 <div class="cat-badge">${p.category}</div>
                                 <span style="font-size: 13px; color: var(--gold-primary);"><i class="fa-solid fa-grip-vertical"></i></span>
                             </div>
                             <div class="p-name">${p.name}</div>
                         </div>
-                        <div>
+                        <div style="pointer-events: none; user-select: none;">
                             <div class="p-stock ${isLowStock ? 'low' : ''}">${isServiceOrMembership ? 'Unlimited' : `Stock: ${p.stock}`}</div>
                             <div class="p-price" style="${p.prices && p.prices.length > 1 ? 'font-size: 11px;' : ''}">${priceDisplay}</div>
                         </div>
                         <div style="display: flex; gap: 6px; margin-top: 8px; justify-content: flex-end; z-index: 5;" onclick="event.stopPropagation()">
-                            <button class="btn btn-outline" style="padding: 4px 10px; min-height: 32px; font-size: 12px; border-color: var(--gold-primary); color: var(--gold-light);" onclick="event.stopPropagation(); moveProductSequence('${p.id}', -1)" title="Move earlier">◀</button>
-                            <button class="btn btn-outline" style="padding: 4px 10px; min-height: 32px; font-size: 12px; border-color: var(--gold-primary); color: var(--gold-light);" onclick="event.stopPropagation(); moveProductSequence('${p.id}', 1)" title="Move later">▶</button>
+                            <button type="button" class="btn btn-outline" style="padding: 4px 10px; min-height: 32px; font-size: 12px; border-color: var(--gold-primary); color: var(--gold-light);" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" onclick="event.stopPropagation(); event.preventDefault(); moveProductSequence('${p.id}', -1)" title="Move earlier">◀</button>
+                            <button type="button" class="btn btn-outline" style="padding: 4px 10px; min-height: 32px; font-size: 12px; border-color: var(--gold-primary); color: var(--gold-light);" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" onclick="event.stopPropagation(); event.preventDefault(); moveProductSequence('${p.id}', 1)" title="Move later">▶</button>
                         </div>
                     `;
                 } else {
@@ -2304,7 +2334,6 @@
                 trainerComm: totalTrainerComm
             };
 
-            // Deduct stock
             cart.forEach(cartItem => {
                 const p = products.find(prod => prod.id === cartItem.id);
                 if (p && p.category !== 'Memberships' && p.category !== 'PT Sessions') {
@@ -2318,7 +2347,6 @@
             sales.unshift(newSale);
             saveData();
 
-            // Sync to Supabase
             if (supabaseClient) {
                 try {
                     let salePayload = {
@@ -2746,7 +2774,6 @@
                 }
             }
 
-            // Payment Method Breakdown
             const payTbody = document.getElementById('rep-pay-table-body');
             if (payTbody) {
                 let cashTotal = 0, transferTotal = 0, cardTotal = 0;
@@ -2793,7 +2820,6 @@
                 `;
             }
 
-            // Item Sales Breakdown Table
             const itemsTbody = document.getElementById('rep-items-table-body');
             const itemsTfoot = document.getElementById('rep-items-table-foot');
             if (itemsTbody) {
@@ -2890,7 +2916,6 @@
                 }
             }
 
-            // Trainer Performance Table
             const trainerTbody = document.getElementById('rep-trainer-table-body');
             const trainerTfoot = document.getElementById('rep-trainer-table-foot');
             if (trainerTbody) {
@@ -2996,7 +3021,6 @@
                 }
             }
 
-            // Monthly Matrix Table Render
             const matrixWrapper = document.getElementById('monthly-matrix-wrapper');
             const matrixBody = document.getElementById('rep-monthly-matrix-body');
             const matrixFoot = document.getElementById('rep-monthly-matrix-foot');
@@ -4483,6 +4507,13 @@
             populateTrainerDropdown();
             renderPosProducts();
             renderCart();
+
+            window.addEventListener('dragend', cleanupDragStyles);
+            window.addEventListener('drop', (e) => {
+                if (draggedItemId) {
+                    cleanupDragStyles();
+                }
+            });
 
             const savedUserStr = sessionStorage.getItem(STORAGE_KEY_SESSION_USER);
             if (savedUserStr) {
