@@ -450,9 +450,18 @@
                 <div class="pos-grid">
                     <div class="pos-products-container">
                         <div class="search-category-bar">
-                            <div class="search-box">
-                                <i class="fa-solid fa-magnifying-glass"></i>
-                                <input type="text" id="pos-search-input" placeholder="Search membership, service, supplement, apparel..." oninput="filterPosProducts()">
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <div class="search-box" style="flex: 1;">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                    <input type="text" id="pos-search-input" placeholder="Search membership, service, supplement, apparel..." oninput="filterPosProducts()">
+                                </div>
+                                <button id="btn-reorder-mode" class="btn btn-outline" style="display: none; white-space: nowrap; padding: 10px 14px; font-size: 13px; border-color: var(--gold-primary); color: var(--gold-light);" onclick="toggleReorderMode()">
+                                    <i class="fa-solid fa-arrows-up-down-left-right"></i> <span id="reorder-btn-text">Rearrange</span>
+                                </button>
+                            </div>
+                            <div id="reorder-banner" style="display: none; background: rgba(212, 175, 55, 0.15); border: 1px dashed var(--gold-primary); border-radius: var(--radius-md); padding: 8px 12px; font-size: 12px; color: var(--gold-light); align-items: center; justify-content: space-between;">
+                                <span><i class="fa-solid fa-hand-pointer" style="margin-right: 6px;"></i> <strong>Sequence Edit Mode:</strong> Drag cards or click ◀ ▶ buttons to rearrange item order.</span>
+                                <button class="btn btn-gold" style="padding: 4px 10px; font-size: 11px; min-height: 28px;" onclick="toggleReorderMode()">Done</button>
                             </div>
                             <div class="category-pills" id="pos-cat-pills">
                                 <div class="cat-pill active" onclick="filterPosCat('ALL', this)">All Items</div>
@@ -1318,6 +1327,7 @@
         const STORAGE_KEY_TRAINERS = 'IF_GYM_TRAINERS_V2';
         const STORAGE_KEY_USERS = 'IF_GYM_USERS_V2';
         const STORAGE_KEY_SESSION_USER = 'IF_GYM_SESSION_USER';
+        const STORAGE_KEY_PRODUCTS_ORDER = 'IF_GYM_PRODUCTS_ORDER_V2';
         
         /* PERSISTENT SUPABASE KEYS */
         const STORAGE_KEY_SUPABASE_URL = 'IF_GYM_SUPABASE_URL_PERM';
@@ -1372,6 +1382,9 @@
         let salesChartInstance = null;
         let targetCustomProduct = null;
         let targetMembershipProduct = null;
+
+        let isReorderMode = false;
+        let draggedItemId = null;
 
         let currentUser = null;
         let enteredPin = "";
@@ -1545,6 +1558,7 @@
                         isCustomPrice: p.is_custom_price || false,
                         allowCustom: p.allow_custom !== undefined ? p.allow_custom : Boolean(p.is_custom_price)
                     }));
+                    applySavedProductOrder();
                     localStorage.setItem(STORAGE_KEY_PRODUCTS, JSON.stringify(products));
                 }
 
@@ -1585,6 +1599,7 @@
                     localStorage.setItem(STORAGE_KEY_SALES, JSON.stringify(sales));
                 }
 
+                // Fetch Trainers
                 const { data: dbTrainers, error: tErr } = await supabaseClient.from('trainers').select('*');
                 if (!tErr && dbTrainers && dbTrainers.length > 0) {
                     trainers = dbTrainers.map(t => ({
@@ -1605,6 +1620,148 @@
             }
         }
 
+        function applySavedProductOrder() {
+            try {
+                const savedOrder = JSON.parse(localStorage.getItem(STORAGE_KEY_PRODUCTS_ORDER));
+                if (savedOrder && Array.isArray(savedOrder) && savedOrder.length > 0) {
+                    products.sort((a, b) => {
+                        const idxA = savedOrder.indexOf(a.id);
+                        const idxB = savedOrder.indexOf(b.id);
+                        if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+                        if (idxA !== -1) return -1;
+                        if (idxB !== -1) return 1;
+                        return 0;
+                    });
+                }
+            } catch (e) {
+                console.warn('Failed applying product order:', e);
+            }
+        }
+
+        function toggleReorderMode() {
+            if (!isAdminUser()) {
+                showAlertModal('Access Denied: Admin or Owner privileges required to rearrange items.');
+                return;
+            }
+            isReorderMode = !isReorderMode;
+            const btn = document.getElementById('btn-reorder-mode');
+            const btnText = document.getElementById('reorder-btn-text');
+            const banner = document.getElementById('reorder-banner');
+
+            if (isReorderMode) {
+                if (btn) {
+                    btn.classList.remove('btn-outline');
+                    btn.classList.add('btn-gold');
+                }
+                if (btnText) btnText.innerText = 'Exit Reorder';
+                if (banner) banner.style.display = 'flex';
+                if (selectedCategory !== 'ALL') {
+                    filterPosCat('ALL', document.querySelector('#pos-cat-pills .cat-pill'));
+                }
+            } else {
+                if (btn) {
+                    btn.classList.remove('btn-gold');
+                    btn.classList.add('btn-outline');
+                }
+                if (btnText) btnText.innerText = 'Rearrange';
+                if (banner) banner.style.display = 'none';
+                saveData();
+                syncProductsOrderToSupabase();
+            }
+            renderPosProducts();
+        }
+
+        function moveProductSequence(id, direction) {
+            const search = document.getElementById('pos-search-input')?.value.toLowerCase() || '';
+            const currentVisible = products.filter(p => {
+                const matchesCat = (selectedCategory === 'ALL' || p.category === selectedCategory);
+                const matchesSearch = p.name.toLowerCase().includes(search) || p.category.toLowerCase().includes(search);
+                return matchesCat && matchesSearch;
+            });
+
+            const visIdx = currentVisible.findIndex(p => p.id === id);
+            if (visIdx === -1) return;
+            const targetVisIdx = visIdx + direction;
+            if (targetVisIdx < 0 || targetVisIdx >= currentVisible.length) return;
+
+            const targetItem = currentVisible[targetVisIdx];
+            const realIdx = products.findIndex(p => p.id === id);
+            const targetRealIdx = products.findIndex(p => p.id === targetItem.id);
+
+            if (realIdx === -1 || targetRealIdx === -1) return;
+
+            const [moved] = products.splice(realIdx, 1);
+            products.splice(targetRealIdx, 0, moved);
+
+            saveData();
+            renderPosProducts();
+        }
+
+        function handleDragStart(e, id) {
+            if (!isReorderMode) return;
+            draggedItemId = id;
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', id);
+            e.currentTarget.style.opacity = '0.4';
+        }
+
+        function handleDragOver(e) {
+            if (!isReorderMode) return;
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        }
+
+        function handleDragEnter(e, cardEl) {
+            if (!isReorderMode) return;
+            cardEl.style.borderColor = 'var(--gold-primary)';
+            cardEl.style.transform = 'scale(1.03)';
+        }
+
+        function handleDragLeave(e, cardEl) {
+            if (!isReorderMode) return;
+            cardEl.style.borderColor = 'var(--border-color)';
+            cardEl.style.transform = '';
+        }
+
+        function handleDrop(e, targetId) {
+            if (!isReorderMode || !draggedItemId || draggedItemId === targetId) return;
+            e.preventDefault();
+
+            const fromIdx = products.findIndex(p => p.id === draggedItemId);
+            const toIdx = products.findIndex(p => p.id === targetId);
+
+            if (fromIdx !== -1 && toIdx !== -1) {
+                const [moved] = products.splice(fromIdx, 1);
+                products.splice(toIdx, 0, moved);
+                saveData();
+                renderPosProducts();
+            }
+        }
+
+        function handleDragEnd(e) {
+            draggedItemId = null;
+            if (e.currentTarget) {
+                e.currentTarget.style.opacity = '1';
+                e.currentTarget.style.transform = '';
+            }
+            document.querySelectorAll('.product-card').forEach(c => {
+                c.style.borderColor = '';
+                c.style.transform = '';
+                c.style.opacity = '1';
+            });
+        }
+
+        async function syncProductsOrderToSupabase() {
+            if (!supabaseClient) return;
+            try {
+                for (let i = 0; i < products.length; i++) {
+                    await supabaseClient.from('products').update({ sort_order: i + 1 }).eq('id', products[i].id);
+                }
+            } catch (e) {
+                // Silently ignore if sort_order column does not exist in schema
+            }
+        }
+
         function renderPosProducts() {
             const grid = document.getElementById('pos-products-grid');
             if (!grid) return;
@@ -1616,14 +1773,6 @@
                 const matchesCat = (selectedCategory === 'ALL' || p.category === selectedCategory);
                 const matchesSearch = p.name.toLowerCase().includes(search) || p.category.toLowerCase().includes(search);
                 return matchesCat && matchesSearch;
-            });
-
-            filtered.sort((a, b) => {
-                const aIsWalkIn = a.name.toLowerCase() === 'walk-in' || a.id === 'P01';
-                const bIsWalkIn = b.name.toLowerCase() === 'walk-in' || b.id === 'P01';
-                if (aIsWalkIn && !bIsWalkIn) return -1;
-                if (!aIsWalkIn && bIsWalkIn) return 1;
-                return 0;
             });
 
             if (filtered.length === 0) {
@@ -1644,19 +1793,49 @@
                         ? p.prices.map(pr => `RM ${pr.toFixed(2)}`).join(' / ') + ((p.allowCustom || p.isCustomPrice || p.category === 'PT Sessions' || p.category === 'Memberships') ? ' / Custom' : '') 
                         : `RM ${p.price.toFixed(2)}` + ((p.allowCustom || p.isCustomPrice) ? ' / Custom' : ''));
 
-                card.innerHTML = `
-                    <div>
-                        <div class="cat-badge">${p.category}</div>
-                        <div class="p-name">${p.name}</div>
-                    </div>
-                    <div>
-                        <div class="p-stock ${isLowStock ? 'low' : ''}">${isServiceOrMembership ? 'Unlimited' : `Stock: ${p.stock}`}</div>
-                        <div class="p-price" style="${p.prices && p.prices.length > 1 ? 'font-size: 11px;' : ''}">${priceDisplay}</div>
-                    </div>
-                    <div class="add-btn"><i class="fa-solid fa-plus"></i></div>
-                `;
+                if (isReorderMode) {
+                    card.setAttribute('draggable', 'true');
+                    card.style.border = '2px dashed var(--gold-primary)';
+                    card.style.cursor = 'grab';
+                    card.ondragstart = (e) => handleDragStart(e, p.id);
+                    card.ondragover = (e) => handleDragOver(e);
+                    card.ondragenter = (e) => handleDragEnter(e, card);
+                    card.ondragleave = (e) => handleDragLeave(e, card);
+                    card.ondrop = (e) => handleDrop(e, p.id);
+                    card.ondragend = (e) => handleDragEnd(e);
 
-                card.onclick = () => addToCart(p);
+                    card.innerHTML = `
+                        <div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                <div class="cat-badge">${p.category}</div>
+                                <span style="font-size: 13px; color: var(--gold-primary);"><i class="fa-solid fa-grip-vertical"></i></span>
+                            </div>
+                            <div class="p-name">${p.name}</div>
+                        </div>
+                        <div>
+                            <div class="p-stock ${isLowStock ? 'low' : ''}">${isServiceOrMembership ? 'Unlimited' : `Stock: ${p.stock}`}</div>
+                            <div class="p-price" style="${p.prices && p.prices.length > 1 ? 'font-size: 11px;' : ''}">${priceDisplay}</div>
+                        </div>
+                        <div style="display: flex; gap: 6px; margin-top: 8px; justify-content: flex-end; z-index: 5;" onclick="event.stopPropagation()">
+                            <button class="btn btn-outline" style="padding: 4px 10px; min-height: 32px; font-size: 12px; border-color: var(--gold-primary); color: var(--gold-light);" onclick="event.stopPropagation(); moveProductSequence('${p.id}', -1)" title="Move earlier">◀</button>
+                            <button class="btn btn-outline" style="padding: 4px 10px; min-height: 32px; font-size: 12px; border-color: var(--gold-primary); color: var(--gold-light);" onclick="event.stopPropagation(); moveProductSequence('${p.id}', 1)" title="Move later">▶</button>
+                        </div>
+                    `;
+                } else {
+                    card.innerHTML = `
+                        <div>
+                            <div class="cat-badge">${p.category}</div>
+                            <div class="p-name">${p.name}</div>
+                        </div>
+                        <div>
+                            <div class="p-stock ${isLowStock ? 'low' : ''}">${isServiceOrMembership ? 'Unlimited' : `Stock: ${p.stock}`}</div>
+                            <div class="p-price" style="${p.prices && p.prices.length > 1 ? 'font-size: 11px;' : ''}">${priceDisplay}</div>
+                        </div>
+                        <div class="add-btn"><i class="fa-solid fa-plus"></i></div>
+                    `;
+                    card.onclick = () => addToCart(p);
+                }
+
                 grid.appendChild(card);
             });
         }
@@ -4023,6 +4202,7 @@
 
         function saveData() {
             localStorage.setItem(STORAGE_KEY_PRODUCTS, JSON.stringify(products));
+            localStorage.setItem(STORAGE_KEY_PRODUCTS_ORDER, JSON.stringify(products.map(p => p.id)));
             localStorage.setItem(STORAGE_KEY_SALES, JSON.stringify(sales));
             localStorage.setItem(STORAGE_KEY_TRAINERS, JSON.stringify(trainers));
             localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
@@ -4262,6 +4442,9 @@
 
             const addProductBtn = document.getElementById('btn-add-product');
             if (addProductBtn) addProductBtn.style.display = isAdmin ? 'flex' : 'none';
+
+            const reorderBtn = document.getElementById('btn-reorder-mode');
+            if (reorderBtn) reorderBtn.style.display = isAdmin ? 'inline-flex' : 'none';
         }
 
         function switchTab(tabId) {
@@ -4295,6 +4478,7 @@
         window.addEventListener('DOMContentLoaded', () => {
             updateClock();
             setInterval(updateClock, 1000);
+            applySavedProductOrder();
             initSupabase();
             populateTrainerDropdown();
             renderPosProducts();
