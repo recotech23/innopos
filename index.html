@@ -21,6 +21,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <!-- Supabase JS Client SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- SortableJS for freeze-free drag and drop -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 
     <style>
         :root {
@@ -331,6 +333,23 @@
         .receipt-paper .r-bold { font-weight: bold; }
         .receipt-paper .r-line { border-bottom: 1px dashed #000; margin: 8px 0; }
         .receipt-paper .r-flex { display: flex; justify-content: space-between; }
+
+        .sortable-ghost {
+            opacity: 0.35;
+            border: 2px dashed var(--gold-primary) !important;
+            background: rgba(212, 175, 55, 0.1) !important;
+        }
+        .sortable-chosen {
+            border-color: var(--gold-light) !important;
+            box-shadow: 0 0 15px var(--gold-glow);
+        }
+        .sortable-drag {
+            opacity: 0.95;
+            transform: scale(1.03);
+            cursor: grabbing !important;
+            z-index: 9999;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.7);
+        }
 
         @media (max-width: 1023px) {
             .app-container { flex-direction: column; height: auto; overflow: visible; }
@@ -1384,7 +1403,7 @@
         let targetMembershipProduct = null;
 
         let isReorderMode = false;
-        let draggedItemId = null;
+        let sortableInstance = null;
 
         let currentUser = null;
         let enteredPin = "";
@@ -1644,7 +1663,6 @@
                 return;
             }
             isReorderMode = !isReorderMode;
-            cleanupDragStyles();
 
             const btn = document.getElementById('btn-reorder-mode');
             const btnText = document.getElementById('reorder-btn-text');
@@ -1659,8 +1677,14 @@
                 if (banner) banner.style.display = 'flex';
                 if (selectedCategory !== 'ALL') {
                     filterPosCat('ALL', document.querySelector('#pos-cat-pills .cat-pill'));
+                } else {
+                    renderPosProducts();
                 }
             } else {
+                if (sortableInstance) {
+                    try { sortableInstance.destroy(); } catch (e) {}
+                    sortableInstance = null;
+                }
                 if (btn) {
                     btn.classList.remove('btn-gold');
                     btn.classList.add('btn-outline');
@@ -1669,8 +1693,8 @@
                 if (banner) banner.style.display = 'none';
                 saveData();
                 syncProductsOrderToSupabase();
+                renderPosProducts();
             }
-            renderPosProducts();
         }
 
         function moveProductSequence(id, direction) {
@@ -1696,89 +1720,132 @@
             products.splice(targetRealIdx, 0, moved);
 
             saveData();
+            syncProductsOrderToSupabase();
             renderPosProducts();
         }
 
-        function handleDragStart(e, id) {
-            if (!isReorderMode) return;
-            draggedItemId = id;
-            if (e.dataTransfer) {
-                e.dataTransfer.effectAllowed = 'move';
+        function initReorderSortable() {
+            const grid = document.getElementById('pos-products-grid');
+            if (!grid) return;
+
+            if (sortableInstance) {
                 try {
-                    e.dataTransfer.setData('text/plain', id);
-                } catch (err) {}
+                    sortableInstance.destroy();
+                } catch (e) {}
+                sortableInstance = null;
             }
-            setTimeout(() => {
-                if (e.target && isReorderMode) {
-                    e.target.style.opacity = '0.35';
+
+            if (!isReorderMode) return;
+
+            if (typeof Sortable !== 'undefined') {
+                try {
+                    sortableInstance = new Sortable(grid, {
+                        animation: 150,
+                        forceFallback: true, // Crucial: avoids native HTML5 drag freeze in iframes
+                        fallbackOnBody: true,
+                        swapThreshold: 0.65,
+                        ghostClass: 'sortable-ghost',
+                        chosenClass: 'sortable-chosen',
+                        dragClass: 'sortable-drag',
+                        filter: 'button, input, select, .reorder-btn-ctrl',
+                        preventOnFilter: false,
+                        onEnd: function (evt) {
+                            const cardEls = Array.from(grid.querySelectorAll('.product-card'));
+                            const newOrder = cardEls.map(el => el.dataset.productId).filter(Boolean);
+                            if (newOrder.length > 0) {
+                                products.sort((a, b) => {
+                                    const idxA = newOrder.indexOf(a.id);
+                                    const idxB = newOrder.indexOf(b.id);
+                                    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+                                    if (idxA !== -1) return -1;
+                                    if (idxB !== -1) return 1;
+                                    return 0;
+                                });
+                                saveData();
+                                syncProductsOrderToSupabase();
+                            }
+                        }
+                    });
+                    return;
+                } catch (err) {
+                    console.warn('Sortable init error, falling back to pointer drag:', err);
                 }
-            }, 0);
-        }
-
-        function handleDragOver(e) {
-            if (!isReorderMode) return;
-            e.preventDefault();
-            if (e.dataTransfer) {
-                e.dataTransfer.dropEffect = 'move';
             }
+
+            // Fallback Pointer Events Drag (Runs if Sortable is not loaded)
+            setupPointerDragFallback(grid);
         }
 
-        function handleDragEnter(e, cardEl) {
-            if (!isReorderMode || !draggedItemId) return;
-            e.preventDefault();
-            if (cardEl.dataset.productId !== draggedItemId) {
-                cardEl.style.borderColor = 'var(--gold-light)';
-                cardEl.style.background = 'rgba(212, 175, 55, 0.15)';
-            }
-        }
-
-        function handleDragLeave(e, cardEl) {
-            if (!isReorderMode) return;
-            if (e.relatedTarget && cardEl.contains(e.relatedTarget)) return;
-            cardEl.style.borderColor = 'var(--gold-primary)';
-            cardEl.style.background = 'var(--bg-card)';
-        }
-
-        function handleDrop(e, targetId) {
-            if (!isReorderMode) return;
-            e.preventDefault();
-            e.stopPropagation();
-
-            const fromId = draggedItemId;
-            draggedItemId = null;
-            cleanupDragStyles();
-
-            if (!fromId || fromId === targetId) return;
-
-            const fromIdx = products.findIndex(p => p.id === fromId);
-            const toIdx = products.findIndex(p => p.id === targetId);
-
-            if (fromIdx !== -1 && toIdx !== -1) {
-                const [moved] = products.splice(fromIdx, 1);
-                products.splice(toIdx, 0, moved);
-                saveData();
-                setTimeout(() => {
-                    renderPosProducts();
-                }, 40);
-            }
-        }
-
-        function handleDragEnd(e) {
-            cleanupDragStyles();
-        }
-
-        function cleanupDragStyles() {
-            draggedItemId = null;
-            document.querySelectorAll('.product-card').forEach(c => {
-                c.style.opacity = '1';
-                c.style.transform = '';
-                if (isReorderMode) {
-                    c.style.borderColor = 'var(--gold-primary)';
-                    c.style.background = 'var(--bg-card)';
-                } else {
-                    c.style.borderColor = '';
-                    c.style.background = '';
-                }
+        function setupPointerDragFallback(grid) {
+            const cards = grid.querySelectorAll('.product-card');
+            cards.forEach(card => {
+                card.style.touchAction = 'none';
+                card.onpointerdown = (e) => {
+                    if (!isReorderMode) return;
+                    if (e.target.closest('button') || e.target.closest('input')) return;
+                    
+                    const startX = e.clientX;
+                    const startY = e.clientY;
+                    let isDragging = false;
+                    const currentCard = card;
+                    
+                    const onPointerMove = (moveEvt) => {
+                        const dist = Math.hypot(moveEvt.clientX - startX, moveEvt.clientY - startY);
+                        if (!isDragging && dist > 6) {
+                            isDragging = true;
+                            currentCard.style.opacity = '0.5';
+                            currentCard.style.cursor = 'grabbing';
+                        }
+                        if (!isDragging) return;
+                        
+                        currentCard.style.visibility = 'hidden';
+                        const elemBelow = document.elementFromPoint(moveEvt.clientX, moveEvt.clientY);
+                        currentCard.style.visibility = 'visible';
+                        
+                        if (elemBelow) {
+                            const targetCard = elemBelow.closest('.product-card');
+                            if (targetCard && targetCard !== currentCard && targetCard.parentNode === grid) {
+                                const targetRect = targetCard.getBoundingClientRect();
+                                const isAfter = moveEvt.clientX > (targetRect.left + targetRect.width / 2);
+                                if (isAfter) {
+                                    targetCard.after(currentCard);
+                                } else {
+                                    targetCard.before(currentCard);
+                                }
+                            }
+                        }
+                    };
+                    
+                    const onPointerUp = () => {
+                        window.removeEventListener('pointermove', onPointerMove);
+                        window.removeEventListener('pointerup', onPointerUp);
+                        window.removeEventListener('pointercancel', onPointerUp);
+                        
+                        currentCard.style.opacity = '1';
+                        currentCard.style.cursor = 'grab';
+                        
+                        if (isDragging) {
+                            const cardElements = Array.from(grid.querySelectorAll('.product-card'));
+                            const newOrder = cardElements.map(el => el.dataset.productId).filter(Boolean);
+                            if (newOrder.length > 0) {
+                                products.sort((a, b) => {
+                                    const idxA = newOrder.indexOf(a.id);
+                                    const idxB = newOrder.indexOf(b.id);
+                                    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+                                    if (idxA !== -1) return -1;
+                                    if (idxB !== -1) return 1;
+                                    return 0;
+                                });
+                                saveData();
+                                syncProductsOrderToSupabase();
+                            }
+                        }
+                    };
+                    
+                    window.addEventListener('pointermove', onPointerMove);
+                    window.addEventListener('pointerup', onPointerUp);
+                    window.addEventListener('pointercancel', onPointerUp);
+                };
             });
         }
 
@@ -1824,31 +1891,24 @@
                         : `RM ${p.price.toFixed(2)}` + ((p.allowCustom || p.isCustomPrice) ? ' / Custom' : ''));
 
                 if (isReorderMode) {
-                    card.setAttribute('draggable', 'true');
                     card.style.border = '2px dashed var(--gold-primary)';
                     card.style.cursor = 'grab';
-                    card.ondragstart = (e) => handleDragStart(e, p.id);
-                    card.ondragover = (e) => handleDragOver(e);
-                    card.ondragenter = (e) => handleDragEnter(e, card);
-                    card.ondragleave = (e) => handleDragLeave(e, card);
-                    card.ondrop = (e) => handleDrop(e, p.id);
-                    card.ondragend = (e) => handleDragEnd(e);
 
                     card.innerHTML = `
-                        <div style="pointer-events: none; user-select: none;">
+                        <div style="user-select: none;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                                 <div class="cat-badge">${p.category}</div>
                                 <span style="font-size: 13px; color: var(--gold-primary);"><i class="fa-solid fa-grip-vertical"></i></span>
                             </div>
                             <div class="p-name">${p.name}</div>
                         </div>
-                        <div style="pointer-events: none; user-select: none;">
+                        <div style="user-select: none;">
                             <div class="p-stock ${isLowStock ? 'low' : ''}">${isServiceOrMembership ? 'Unlimited' : `Stock: ${p.stock}`}</div>
                             <div class="p-price" style="${p.prices && p.prices.length > 1 ? 'font-size: 11px;' : ''}">${priceDisplay}</div>
                         </div>
                         <div style="display: flex; gap: 6px; margin-top: 8px; justify-content: flex-end; z-index: 5;" onclick="event.stopPropagation()">
-                            <button type="button" class="btn btn-outline" style="padding: 4px 10px; min-height: 32px; font-size: 12px; border-color: var(--gold-primary); color: var(--gold-light);" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" onclick="event.stopPropagation(); event.preventDefault(); moveProductSequence('${p.id}', -1)" title="Move earlier">◀</button>
-                            <button type="button" class="btn btn-outline" style="padding: 4px 10px; min-height: 32px; font-size: 12px; border-color: var(--gold-primary); color: var(--gold-light);" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" onclick="event.stopPropagation(); event.preventDefault(); moveProductSequence('${p.id}', 1)" title="Move later">▶</button>
+                            <button type="button" class="btn btn-outline reorder-btn-ctrl" style="padding: 4px 10px; min-height: 32px; font-size: 12px; border-color: var(--gold-primary); color: var(--gold-light);" onpointerdown="event.stopPropagation()" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" onclick="event.stopPropagation(); event.preventDefault(); moveProductSequence('${p.id}', -1)" title="Move earlier">◀</button>
+                            <button type="button" class="btn btn-outline reorder-btn-ctrl" style="padding: 4px 10px; min-height: 32px; font-size: 12px; border-color: var(--gold-primary); color: var(--gold-light);" onpointerdown="event.stopPropagation()" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" onclick="event.stopPropagation(); event.preventDefault(); moveProductSequence('${p.id}', 1)" title="Move later">▶</button>
                         </div>
                     `;
                 } else {
@@ -1868,6 +1928,10 @@
 
                 grid.appendChild(card);
             });
+
+            if (isReorderMode) {
+                initReorderSortable();
+            }
         }
 
         function filterPosCat(cat, element) {
@@ -4507,13 +4571,6 @@
             populateTrainerDropdown();
             renderPosProducts();
             renderCart();
-
-            window.addEventListener('dragend', cleanupDragStyles);
-            window.addEventListener('drop', (e) => {
-                if (draggedItemId) {
-                    cleanupDragStyles();
-                }
-            });
 
             const savedUserStr = sessionStorage.getItem(STORAGE_KEY_SESSION_USER);
             if (savedUserStr) {
