@@ -2795,6 +2795,15 @@
             setTimeout(() => document.getElementById('custom-price-input')?.focus(), 100);
         }
 
+        function getStockProduct(item) {
+            const exact = products.find(p => p.id === (item.productId || item.id));
+            if (exact) return exact;
+            // Older rate/custom-price cart lines encoded the product ID in their ID.
+            return products.filter(p => typeof item.id === 'string' && item.id.startsWith(p.id + '_'))
+                .sort((a, b) => b.id.length - a.id.length)
+                .find(p => /^(?:P\d+(?:_.*)?|\d+)$/.test(item.id.slice(p.id.length + 1)));
+        }
+
         function openApparelSizeModal(product) {
             let modal = document.getElementById('apparel-size-modal');
             if (!modal) {
@@ -2823,7 +2832,7 @@
             options.innerHTML = '';
             apparelSizes.forEach(size => {
                 const variant = variants.find(p => apparelVariant(p).size === size);
-                const inCart = variant ? cart.filter(item => item.id === variant.id).reduce((sum, item) => sum + item.qty, 0) : 0;
+                const inCart = variant ? cart.filter(item => getStockProduct(item)?.id === variant.id).reduce((sum, item) => sum + item.qty, 0) : 0;
                 const available = variant ? Math.max(0, variant.stock - inCart) : 0;
                 const button = document.createElement('button');
                 button.type = 'button';
@@ -2834,7 +2843,7 @@
                 if (button.disabled) button.style.opacity = '0.4';
                 button.onclick = () => {
                     const current = products.find(p => p.id === variant.id);
-                    const reserved = cart.filter(item => item.id === variant.id).reduce((sum, item) => sum + item.qty, 0);
+                    const reserved = cart.filter(item => getStockProduct(item)?.id === variant.id).reduce((sum, item) => sum + item.qty, 0);
                     if (!current || current.stock <= reserved) {
                         openApparelSizeModal(product);
                         return;
@@ -3141,15 +3150,20 @@
                 trainerComm: totalTrainerComm
             };
 
+            const stockUpdates = new Map();
             cart.forEach(cartItem => {
-                const p = products.find(prod => prod.id === cartItem.id);
+                const p = getStockProduct(cartItem);
                 if (p && p.category !== 'Memberships' && p.category !== 'PT Sessions') {
                     p.stock = Math.max(0, p.stock - cartItem.qty);
-                    if (supabaseClient) {
-                        supabaseClient.from('products').update({ stock: p.stock }).eq('id', p.id).then();
-                    }
+                    stockUpdates.set(p.id, p);
                 }
             });
+            if (supabaseClient) {
+                for (const p of stockUpdates.values()) {
+                    await supabaseClient.from('products').update({ stock: p.stock }).eq('id', p.id);
+                }
+            }
+            renderProductsTable();
 
             sales.unshift(newSale);
             saveData();
@@ -4916,7 +4930,7 @@
 
             if (sale.items && Array.isArray(sale.items)) {
                 sale.items.forEach(item => {
-                    const p = products.find(prod => prod.id === item.id);
+                    const p = getStockProduct(item);
                     if (p && p.category !== 'Memberships' && p.category !== 'PT Sessions') {
                         p.stock += item.qty;
                         if (supabaseClient) {
@@ -5249,6 +5263,7 @@
             } else {
                 cart.push({
                     ...targetMembershipProduct,
+                    productId: targetMembershipProduct.id,
                     id: itemCartId,
                     name: itemLabel,
                     price: selectedPrice,
@@ -5280,6 +5295,7 @@
                 const customCartId = `${targetCustomProduct.id}_${Date.now()}`;
                 cart.push({
                     ...targetCustomProduct,
+                    productId: targetCustomProduct.id,
                     id: customCartId,
                     price: val,
                     trainer: selectedTrainer,
