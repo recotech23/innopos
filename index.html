@@ -1118,10 +1118,7 @@
                 <i class="fa-solid fa-cart-shopping"></i> POS Register
             </button>
             <button id="nav-btn-products" class="nav-btn" onclick="switchTab('products')">
-                <i class="fa-solid fa-boxes-stacked"></i> Products & Catalog
-            </button>
-            <button id="nav-btn-inventory" class="nav-btn" onclick="switchTab('inventory')">
-                <i class="fa-solid fa-warehouse"></i> Inventory Stock
+                <i class="fa-solid fa-boxes-stacked"></i> Products & Inventory
             </button>
             <button id="nav-btn-pt-commissions" class="nav-btn" onclick="switchTab('pt-commissions')">
                 <i class="fa-solid fa-user-ninja"></i> PT Commissions
@@ -1210,35 +1207,12 @@
             <section id="view-products" class="view-section">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
                     <div>
-                        <h2>Product & Service Management</h2>
-                        <p style="color: var(--text-muted); font-size: 13px;">Manage gym plans, personal training packages, supplements & retail merchandise</p>
+                        <h2>Products & Inventory</h2>
+                        <p style="color: var(--text-muted); font-size: 13px;">Manage products, pricing, apparel sizes and stock in one place</p>
                     </div>
                     <button id="btn-add-product" class="btn btn-gold" onclick="openProductModal()">
                         <i class="fa-solid fa-plus"></i> Add New Product
                     </button>
-                </div>
-
-                <div class="table-wrapper">
-                    <table class="custom-table">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Category</th>
-                                <th>Selling Price</th>
-                                <th>Cost Price</th>
-                                <th>Stock Qty</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="product-list-table"></tbody>
-                    </table>
-                </div>
-            </section>
-
-            <section id="view-inventory" class="view-section">
-                <div style="margin-bottom: 16px;">
-                    <h2>Inventory & Stock Tracking</h2>
-                    <p style="color: var(--text-muted); font-size: 13px;">Monitor real-time retail stocks and manage product replenishment</p>
                 </div>
 
                 <div class="kpi-grid">
@@ -1269,14 +1243,17 @@
                     <table class="custom-table">
                         <thead>
                             <tr>
-                                <th>Product Item</th>
+                                <th>Name</th>
                                 <th>Category</th>
-                                <th>Current Stock</th>
+                                <th>Selling Price</th>
+                                <th>Cost Price</th>
+                                <th>Stock Qty</th>
                                 <th>Stock Status</th>
                                 <th>Adjust Stock</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="inventory-list-table"></tbody>
+                        <tbody id="product-list-table"></tbody>
                     </table>
                 </div>
             </section>
@@ -1786,7 +1763,7 @@
                 <div style="display: flex; gap: 8px;">
                     <div style="flex: 1;">
                         <label style="font-size: 12px; color: var(--text-muted);">Category</label>
-                        <select id="p-form-cat" class="select-input" required>
+                        <select id="p-form-cat" class="select-input" required onchange="toggleApparelSizes()">
                             <option value="Memberships">Memberships</option>
                             <option value="PT Sessions">PT Sessions</option>
                             <option value="Food & Beverages">Food & Beverages</option>
@@ -1810,6 +1787,12 @@
                         <label style="font-size: 12px; color: var(--text-muted);">Cost Price (RM)</label>
                         <input type="number" step="0.01" id="p-form-cost" class="text-input" required min="0" placeholder="0.00">
                     </div>
+                </div>
+
+                <div id="p-form-sizes-section" style="display: none;">
+                    <label style="font-size: 13px;"><input type="checkbox" id="p-form-use-sizes" onchange="toggleApparelSizes()"> Track apparel stock by size</label>
+                    <div id="p-form-size-inputs" style="display: none; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px;"></div>
+                    <small id="p-form-size-help" style="display: none; color: var(--text-muted);">Enter stock for each size. These quantities replace the single Stock Qty.</small>
                 </div>
 
                 <div>
@@ -2439,6 +2422,26 @@
             }
         }
 
+        function getPosDisplayProducts() {
+            const grouped = new Map();
+            const display = [];
+            products.forEach(product => {
+                const variant = apparelVariant(product);
+                if (!variant) {
+                    display.push(product);
+                    return;
+                }
+                let card = grouped.get(variant.name);
+                if (!card) {
+                    card = { ...product, name: variant.name, stock: 0 };
+                    grouped.set(variant.name, card);
+                    display.push(card);
+                }
+                card.stock += product.stock;
+            });
+            return display;
+        }
+
         function renderPosProducts() {
             const grid = document.getElementById('pos-products-grid');
             if (!grid) return;
@@ -2451,7 +2454,7 @@
 
             grid.innerHTML = '';
 
-            const filtered = products.filter(p => {
+            const filtered = getPosDisplayProducts().filter(p => {
                 const matchesCat = (selectedCategory === 'ALL' || p.category === selectedCategory);
                 const matchesSearch = p.name.toLowerCase().includes(search) || p.category.toLowerCase().includes(search);
                 return matchesCat && matchesSearch;
@@ -2541,7 +2544,7 @@
 
             grid.innerHTML = '';
 
-            const filtered = products.filter(p => {
+            const filtered = getPosDisplayProducts().filter(p => {
                 const matchesCat = (selectedCategory === 'ALL' || p.category === selectedCategory);
                 const matchesSearch = p.name.toLowerCase().includes(search) || p.category.toLowerCase().includes(search);
                 return matchesCat && matchesSearch;
@@ -2792,7 +2795,63 @@
             setTimeout(() => document.getElementById('custom-price-input')?.focus(), 100);
         }
 
-        function addToCart(product) {
+        function openApparelSizeModal(product) {
+            let modal = document.getElementById('apparel-size-modal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'apparel-size-modal';
+                modal.className = 'modal-overlay';
+                modal.innerHTML = `
+                    <div class="modal-box" style="max-width: 400px;">
+                        <div class="modal-header">
+                            <h3 id="apparel-size-title"></h3>
+                            <button class="modal-close" aria-label="Cancel size selection" onclick="closeModal('apparel-size-modal')">×</button>
+                        </div>
+                        <p id="apparel-size-hint" style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;"></p>
+                        <div id="apparel-size-options" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;"></div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            }
+            const name = apparelVariant(product)?.name || product.name;
+            const variants = products.filter(p => apparelVariant(p)?.name === name);
+            document.getElementById('apparel-size-title').textContent = name;
+            document.getElementById('apparel-size-hint').textContent = variants.length
+                ? 'Choose a size to add to checkout.'
+                : 'Add size quantities for this apparel item in Products & Inventory before checkout.';
+            const options = document.getElementById('apparel-size-options');
+            options.innerHTML = '';
+            apparelSizes.forEach(size => {
+                const variant = variants.find(p => apparelVariant(p).size === size);
+                const inCart = variant ? cart.filter(item => item.id === variant.id).reduce((sum, item) => sum + item.qty, 0) : 0;
+                const available = variant ? Math.max(0, variant.stock - inCart) : 0;
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'btn-outline';
+                button.style.cssText = 'padding: 12px 6px;';
+                button.textContent = `${size} (${available})`;
+                button.disabled = available <= 0;
+                if (button.disabled) button.style.opacity = '0.4';
+                button.onclick = () => {
+                    const current = products.find(p => p.id === variant.id);
+                    const reserved = cart.filter(item => item.id === variant.id).reduce((sum, item) => sum + item.qty, 0);
+                    if (!current || current.stock <= reserved) {
+                        openApparelSizeModal(product);
+                        return;
+                    }
+                    closeModal('apparel-size-modal');
+                    addToCart(current, true);
+                };
+                options.appendChild(button);
+            });
+            modal.classList.add('active');
+        }
+
+        function addToCart(product, apparelSizeSelected = false) {
+            if (product.category === 'Apparel' && (!apparelSizeSelected || !apparelVariant(product))) {
+                openApparelSizeModal(product);
+                return;
+            }
             const isPtItem = isPtSessionItem(product);
 
             if (isPtItem) {
@@ -3637,8 +3696,14 @@
                                 return;
                             }
 
-                            const key = getConsolidatedItemKey(item);
-                            const info = displayMap[key] || { name: item.name, cat: item.category || 'Others' };
+                            const category = item.category || products.find(p => p.id === item.id)?.category;
+                            const isApparel = category === 'Apparel';
+                            const apparelLabel = isApparel ? item.name.replace(/(?:\s+\(Rate\s+\d+\))+$/i, '').trim() : item.name;
+                            const sizeMatch = isApparel && apparelLabel.match(/^(.*) \((XS|S|M|L|XL|2XL)\)$/i);
+                            const apparelName = sizeMatch ? sizeMatch[1] : apparelLabel;
+                            const key = isApparel ? 'APPAREL:' + apparelName : getConsolidatedItemKey(item);
+                            const info = isApparel ? { name: apparelName, cat: 'Apparel' }
+                                : displayMap[key] || { name: item.name, cat: item.category || 'Others' };
                             const itemTotal = item.price * item.qty;
 
                             if (!itemStats[key]) {
@@ -3646,6 +3711,13 @@
                             }
                             itemStats[key].count += item.qty;
                             itemStats[key].total += itemTotal;
+                            if (isApparel) {
+                                const size = sizeMatch ? sizeMatch[2].toUpperCase() : 'Unspecified';
+                                const sizes = itemStats[key].sizes || (itemStats[key].sizes = {});
+                                if (!sizes[size]) sizes[size] = { count: 0, total: 0 };
+                                sizes[size].count += item.qty;
+                                sizes[size].total += itemTotal;
+                            }
                             totalCount += item.qty;
                             totalAmount += itemTotal;
                         });
@@ -3684,6 +3756,38 @@
                         <td style="text-align: right; font-weight: bold; color: var(--gold-light);">RM ${stat.total.toFixed(2)}</td>
                     `;
                     itemsTbody.appendChild(tr);
+                    if (stat.sizes) {
+                        const button = document.createElement('button');
+                        button.type = 'button';
+                        button.className = 'btn-outline';
+                        button.style.cssText = 'padding: 2px 6px; margin-left: 6px;';
+                        button.setAttribute('aria-expanded', 'false');
+                        button.setAttribute('aria-label', `Show sizes for ${stat.name}`);
+                        button.innerHTML = '<i class="fa-solid fa-chevron-down" aria-hidden="true"></i>';
+                        tr.firstElementChild.querySelector('strong').after(button);
+                        const sizeRows = [];
+                        ['XS', 'S', 'M', 'L', 'XL', '2XL', 'Unspecified'].forEach(size => {
+                            const detail = stat.sizes[size];
+                            if (!detail) return;
+                            const row = document.createElement('tr');
+                            row.hidden = true;
+                            row.style.display = 'none';
+                            row.innerHTML = `
+                                <td style="padding-left: 32px; color: var(--text-muted);">${size}</td>
+                                <td style="text-align: center;">${detail.count}</td>
+                                <td style="text-align: right; color: var(--text-muted);">RM ${detail.total.toFixed(2)}</td>
+                            `;
+                            itemsTbody.appendChild(row);
+                            sizeRows.push(row);
+                        });
+                        button.onclick = () => {
+                            const expanded = button.getAttribute('aria-expanded') !== 'true';
+                            button.setAttribute('aria-expanded', String(expanded));
+                            button.setAttribute('aria-label', `${expanded ? 'Hide' : 'Show'} sizes for ${stat.name}`);
+                            button.innerHTML = `<i class="fa-solid fa-chevron-${expanded ? 'up' : 'down'}" aria-hidden="true"></i>`;
+                            sizeRows.forEach(row => { row.hidden = !expanded; row.style.display = expanded ? '' : 'none'; });
+                        };
+                    }
                 });
 
                 if (itemsTfoot) {
@@ -4235,13 +4339,67 @@
             renderSalesReports();
         }
 
+        const apparelSizes = ['XS', 'S', 'M', 'L', 'XL', '2XL'];
+
+        function apparelVariant(p) {
+            const match = p.category === 'Apparel' && p.name.match(/^(.*) \((XS|S|M|L|XL|2XL)\)$/);
+            return match ? { name: match[1], size: match[2] } : null;
+        }
+
+        function apparelTableProducts(tbody, columns) {
+            const ordered = [];
+            const seen = new Set();
+            products.forEach(p => {
+                const variant = apparelVariant(p);
+                if (!variant) { ordered.push(p); return; }
+                if (seen.has(variant.name)) return;
+                seen.add(variant.name);
+                const group = products.filter(item => apparelVariant(item)?.name === variant.name)
+                    .sort((a, b) => apparelSizes.indexOf(apparelVariant(a).size) - apparelSizes.indexOf(apparelVariant(b).size));
+                ordered.push({ apparelHeading: variant.name, total: group.reduce((sum, item) => sum + item.stock, 0) }, ...group);
+            });
+            return ordered;
+        }
+
+        function appendApparelHeading(tbody, p, columns) {
+            if (p.apparelHeading === undefined) return false;
+            const row = document.createElement('tr');
+            const cell = document.createElement('td');
+            cell.colSpan = columns;
+            cell.style.cssText = 'color: var(--gold-light); font-weight: 700; background: var(--bg-secondary);';
+            cell.textContent = `${p.apparelHeading} — ${p.total} total in stock`;
+            row.appendChild(cell);
+            tbody.appendChild(row);
+            return true;
+        }
+
+        function toggleApparelSizes() {
+            const apparel = document.getElementById('p-form-cat').value === 'Apparel';
+            const enabled = apparel && document.getElementById('p-form-use-sizes').checked;
+            document.getElementById('p-form-sizes-section').style.display = apparel ? 'block' : 'none';
+            document.getElementById('p-form-size-inputs').style.display = enabled ? 'grid' : 'none';
+            document.getElementById('p-form-size-help').style.display = enabled ? 'block' : 'none';
+            document.getElementById('p-form-stock').disabled = enabled;
+            apparelSizes.forEach(size => { document.getElementById('p-form-size-' + size).disabled = !enabled; });
+        }
+
         function renderProductsTable() {
             const tbody = document.getElementById('product-list-table');
             if (!tbody) return;
             tbody.innerHTML = '';
             const canEdit = isAdminUser();
+            const canAdjust = canEdit;
+            let lowStockCount = 0;
+            let totalValuation = 0;
 
-            products.forEach(p => {
+            apparelTableProducts().forEach(p => {
+                if (appendApparelHeading(tbody, p, 8)) return;
+                const isRetail = (p.category !== 'Memberships' && p.category !== 'PT Sessions' && p.category !== 'Services' && p.category !== 'Others');
+                const isLow = isRetail && p.stock < 10;
+
+                if (isLow) lowStockCount++;
+                if (isRetail) totalValuation += (p.cost * p.stock);
+
                 const priceStr = (p.prices && p.prices.length > 0)
                     ? p.prices.map(pr => `RM ${pr.toFixed(2)}`).join(' / ') + ((p.allowCustom || p.isCustomPrice) ? ' / Custom' : '')
                     : ((p.isCustomPrice || p.allowCustom) ? 'Custom Price' : `RM ${p.price.toFixed(2)}`);
@@ -4252,38 +4410,6 @@
                     <td><span class="badge badge-gold">${p.category}</span></td>
                     <td style="font-size: 12px; font-weight: 600;">${priceStr}</td>
                     <td>RM ${p.cost.toFixed(2)}</td>
-                    <td>${p.stock > 900 ? 'Infinite' : p.stock}</td>
-                    <td>
-                        ${canEdit ? `
-                            <button class="btn-outline" style="padding: 4px 10px; font-size: 11px;" onclick="openProductModal('${p.id}')">
-                                <i class="fa-solid fa-pen"></i> Edit
-                            </button>
-                        ` : `<span style="color: var(--text-muted); font-size: 11px;">View Only</span>`}
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function renderInventoryTable() {
-            const tbody = document.getElementById('inventory-list-table');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-            let lowStockCount = 0;
-            let totalValuation = 0;
-            const canAdjust = isAdminUser();
-
-            products.forEach(p => {
-                const isRetail = (p.category !== 'Memberships' && p.category !== 'PT Sessions' && p.category !== 'Services' && p.category !== 'Others');
-                const isLow = isRetail && p.stock < 10;
-
-                if (isLow) lowStockCount++;
-                if (isRetail) totalValuation += (p.cost * p.stock);
-
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><strong>${p.name}</strong></td>
-                    <td><span class="badge badge-gold">${p.category}</span></td>
                     <td>${isRetail ? p.stock : 'Unlimited'}</td>
                     <td>
                         ${isRetail ? (isLow ? `<span class="badge badge-warning">Low Stock (&lt;10)</span>` : `<span class="badge badge-success">Sufficient</span>`) : `<span class="badge badge-gold">Service Plan</span>`}
@@ -4299,10 +4425,16 @@
                             </div>
                         ` : `<span style="color: var(--text-muted); font-size: 11px;">View Only</span>`) : 'N/A'}
                     </td>
+                    <td>
+                        ${canEdit ? `
+                            <button class="btn-outline" style="padding: 4px 10px; font-size: 11px;" onclick="openProductModal('${p.id}')">
+                                <i class="fa-solid fa-pen"></i> Edit
+                            </button>
+                        ` : `<span style="color: var(--text-muted); font-size: 11px;">View Only</span>`}
+                    </td>
                 `;
                 tbody.appendChild(tr);
             });
-
             const totEl = document.getElementById('inv-total-items');
             const lowEl = document.getElementById('inv-low-stock');
             const valEl = document.getElementById('inv-valuation');
@@ -4310,6 +4442,10 @@
             if (totEl) totEl.innerText = products.length;
             if (lowEl) lowEl.innerText = lowStockCount;
             if (valEl) valEl.innerText = `RM ${totalValuation.toFixed(2)}`;
+        }
+
+        function renderInventoryTable() {
+            renderProductsTable();
         }
 
         function openCustomStockModal(id) {
@@ -4376,6 +4512,18 @@
                 document.getElementById('p-form-allow-custom').checked = false;
             }
 
+            const edited = products.find(p => p.id === editId);
+            const variant = edited && apparelVariant(edited);
+            document.getElementById('p-form-use-sizes').checked = Boolean(variant);
+            // Existing size groups are edited together to preserve their individual stock.
+            document.getElementById('p-form-use-sizes').disabled = Boolean(variant);
+            document.getElementById('p-form-cat').disabled = Boolean(variant);
+            if (variant) document.getElementById('p-form-name').value = variant.name;
+            document.getElementById('p-form-size-inputs').innerHTML = apparelSizes.map(size => {
+                const item = variant && products.find(p => apparelVariant(p)?.name === variant.name && apparelVariant(p)?.size === size);
+                return `<label style="font-size: 12px;">${size}<input type="number" id="p-form-size-${size}" class="text-input" min="0" step="1" required value="${item ? item.stock : 0}"></label>`;
+            }).join('');
+            toggleApparelSizes();
             modal?.classList.add('active');
         }
 
@@ -4406,55 +4554,52 @@
                 compiledPrices = [primaryPrice, ...extraPrices];
             }
 
-            let updatedProd = null;
-
-            if (pId) {
-                const p = products.find(item => item.id === pId);
-                if (p) {
-                    p.name = name;
-                    p.category = category;
-                    p.price = primaryPrice;
-                    p.prices = compiledPrices;
-                    p.cost = cost;
-                    p.stock = stock;
-                    p.allowCustom = allowCustom;
-                    p.isCustomPrice = allowCustom;
-                    updatedProd = p;
+            const useSizes = category === 'Apparel' && document.getElementById('p-form-use-sizes').checked;
+            const existing = products.find(p => p.id === pId);
+            const originalVariant = existing && apparelVariant(existing);
+            const updatedProducts = [];
+            const sizes = useSizes ? apparelSizes : [null];
+            if (useSizes && products.some(p => p.category === 'Apparel' &&
+                (apparelVariant(p)?.name === name || p.name === name) && p.id !== pId &&
+                (!originalVariant || apparelVariant(p)?.name !== originalVariant.name))) {
+                showAlertModal('An apparel item with this name already exists. Edit that item or use a different name.');
+                return;
+            }
+            for (const size of sizes) {
+                let p = useSizes && originalVariant
+                    ? products.find(item => apparelVariant(item)?.name === originalVariant.name && apparelVariant(item)?.size === size)
+                    : ((!size || size === 'XS') ? existing : null);
+                if (!p) {
+                    let number = products.length + 1;
+                    while (products.some(item => item.id === 'P' + String(number).padStart(2, '0'))) number++;
+                    p = { id: 'P' + String(number).padStart(2, '0'), comm: existing ? existing.comm : 60 };
+                    products.push(p);
                 }
-            } else {
-                const newId = 'P' + String(products.length + 1).padStart(2, '0');
-                updatedProd = {
-                    id: newId,
-                    name: name,
-                    category: category,
-                    price: primaryPrice,
-                    prices: compiledPrices,
-                    cost: cost,
-                    stock: stock,
-                    comm: 60,
-                    allowCustom: allowCustom,
-                    isCustomPrice: allowCustom
-                };
-                products.push(updatedProd);
+                Object.assign(p, {
+                    name: size ? `${name} (${size})` : name,
+                    category, price: primaryPrice, prices: compiledPrices, cost,
+                    stock: size ? Number(document.getElementById('p-form-size-' + size).value) : stock,
+                    allowCustom, isCustomPrice: allowCustom
+                });
+                updatedProducts.push(p);
             }
 
             saveData();
 
-            if (supabaseClient && updatedProd) {
-                await supabaseClient.from('products').upsert({
-                    id: updatedProd.id,
-                    name: updatedProd.name,
-                    category: updatedProd.category,
-                    price: updatedProd.price,
-                    prices: updatedProd.prices || [],
-                    cost: updatedProd.cost,
-                    stock: updatedProd.stock,
-                    comm: updatedProd.comm || 60,
-                    is_custom_price: updatedProd.isCustomPrice || false,
-                    allow_custom: updatedProd.allowCustom || false
-                });
+            if (supabaseClient) {
+                const { error } = await supabaseClient.from('products').upsert(updatedProducts.map(p => ({
+                    id: p.id, name: p.name, category: p.category, price: p.price,
+                    prices: p.prices || [], cost: p.cost, stock: p.stock,
+                    comm: p.comm || 60, is_custom_price: p.isCustomPrice || false,
+                    allow_custom: p.allowCustom || false
+                })));
+                if (error) {
+                    showAlertModal('Products saved on this device, but database sync failed: ' + error.message);
+                    return;
+                }
             }
 
+            renderInventoryTable();
             closeModal('product-modal');
             renderProductsTable();
             renderPosProducts();
@@ -5249,7 +5394,6 @@
 
             const posBtn = document.getElementById('nav-btn-pos');
             const prodBtn = document.getElementById('nav-btn-products');
-            const invBtn = document.getElementById('nav-btn-inventory');
             const ptBtn = document.getElementById('nav-btn-pt-commissions');
             const repBtn = document.getElementById('nav-btn-reports');
             const histBtn = document.getElementById('nav-btn-history');
@@ -5257,7 +5401,6 @@
 
             if (posBtn) posBtn.style.display = 'flex';
             if (prodBtn) prodBtn.style.display = 'flex';
-            if (invBtn) invBtn.style.display = 'flex';
             if (ptBtn) ptBtn.style.display = isAdmin ? 'flex' : 'none';
             if (repBtn) repBtn.style.display = isAdmin ? 'flex' : 'none';
             if (histBtn) histBtn.style.display = 'flex';
@@ -5268,6 +5411,7 @@
         }
 
         function switchTab(tabId) {
+            if (tabId === 'inventory') tabId = 'products';
             if (tabId === 'users' && !isOwnerUser()) {
                 showAlertModal('Access Denied: Only System Owners can manage User Accounts.');
                 return;
@@ -5288,7 +5432,6 @@
 
             if (tabId === 'pos') renderPosProducts();
             if (tabId === 'products') renderProductsTable();
-            if (tabId === 'inventory') renderInventoryTable();
             if (tabId === 'pt-commissions') renderTrainerCommissions();
             if (tabId === 'reports') renderSalesReports();
             if (tabId === 'history') renderHistoryTable();
