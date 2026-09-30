@@ -1317,6 +1317,7 @@
                         <button class="btn btn-outline" style="padding: 8px 12px; font-size: 12px; border-color: var(--gold-primary); color: var(--gold-light);" onclick="changeReportPeriod('daily', this)">Daily</button>
                         <button class="btn btn-outline" style="padding: 8px 12px; font-size: 12px;" onclick="changeReportPeriod('weekly', this)">Weekly</button>
                         <button class="btn btn-outline" style="padding: 8px 12px; font-size: 12px;" onclick="changeReportPeriod('monthly', this)">Monthly</button>
+                        <button class="btn btn-outline" style="padding: 8px 12px; font-size: 12px;" onclick="changeReportPeriod('last_month', this)">Last Month</button>
                         <button class="btn btn-outline" style="padding: 8px 12px; font-size: 12px;" onclick="changeReportPeriod('yearly', this)">Yearly</button>
                         <button class="btn btn-gold" style="padding: 8px 12px; font-size: 12px;" onclick="exportReportCSV()"><i class="fa-solid fa-download"></i> CSV Export</button>
                         <button class="btn btn-gold" style="padding: 8px 12px; font-size: 12px;" onclick="copyReportScreenshot()"><i class="fa-solid fa-camera"></i> Copy Screenshot</button>
@@ -1411,19 +1412,23 @@
                     </div>
                 </div>
 
-                <!-- Monthly Daily Sales Matrix Table -->
                 <div id="monthly-matrix-wrapper" style="display: none; margin-top: 20px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 16px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
                         <h3 style="color: var(--gold-light); font-size: 15px; text-transform: uppercase; letter-spacing: 0.5px;">
                             <i class="fa-solid fa-calendar-days"></i> Monthly Daily Sales Breakdown Matrix
                         </h3>
-                        <button class="btn btn-gold" style="padding: 6px 12px; font-size: 12px;" onclick="exportReportCSV()">
-                            <i class="fa-solid fa-file-csv"></i> Export Monthly Matrix CSV
-                        </button>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                            <button id="btn-add-matrix-product" class="btn btn-gold" style="padding: 6px 12px; font-size: 12px; display: none;" onclick="openMatrixProductModal()">
+                                <i class="fa-solid fa-plus"></i> Add Product
+                            </button>
+                            <button class="btn btn-gold" style="padding: 6px 12px; font-size: 12px;" onclick="exportReportCSV()">
+                                <i class="fa-solid fa-file-csv"></i> Export Monthly Matrix CSV
+                            </button>
+                        </div>
                     </div>
                     <div class="table-wrapper">
                         <table class="custom-table" style="font-size: 11px;">
-                            <thead>
+                            <thead id="rep-monthly-matrix-head">
                                 <tr>
                                     <th>DATE</th>
                                     <th style="text-align: right;">CASH</th>
@@ -1813,6 +1818,45 @@
         </div>
     </div>
 
+    <!-- Add Product to Monthly Matrix Modal (Owner & Admin Access) -->
+    <div class="modal-overlay" id="matrix-product-modal">
+        <div class="modal-box" style="max-width: 440px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-cart-plus" style="color: var(--gold-primary);"></i> Add Product to Monthly Matrix</h3>
+                <button class="modal-close" onclick="closeModal('matrix-product-modal')">×</button>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 6px;">
+                <p style="font-size: 12px; color: var(--text-muted);">
+                    Select an existing product from inventory or enter a product name to add it into the Monthly Daily Sales Breakdown Matrix for sales calculation.
+                </p>
+
+                <div>
+                    <label style="font-size: 12px; color: var(--text-muted);">Select Product from Inventory</label>
+                    <select id="matrix-prod-select" class="select-input" onchange="onMatrixProductSelectChange()">
+                        <option value="">-- Choose Product from Inventory --</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label style="font-size: 12px; color: var(--text-muted);">Product Column Name</label>
+                    <input type="text" id="matrix-prod-name-input" class="text-input" placeholder="e.g. Energy Bar, Protein Shake">
+                </div>
+
+                <button class="btn btn-gold" style="width: 100%;" onclick="addMatrixProduct()">
+                    <i class="fa-solid fa-plus"></i> Add to Sales Matrix
+                </button>
+
+                <div style="border-top: 1px solid var(--border-color); padding-top: 10px; margin-top: 4px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <span style="font-size: 12px; color: var(--gold-light); font-weight: 600;">Custom Matrix Columns</span>
+                        <span id="matrix-custom-count" style="font-size: 11px; color: var(--text-muted);">0 added</span>
+                    </div>
+                    <div id="matrix-custom-prods-list" style="display: flex; flex-direction: column; gap: 6px; max-height: 160px; overflow-y: auto;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Custom Stock Amount Modal -->
     <div class="modal-overlay" id="stock-modal">
         <div class="modal-box" style="max-width: 360px;">
@@ -2012,6 +2056,7 @@
         const STORAGE_KEY_TRAINERS = 'IF_GYM_TRAINERS_V2';
         const STORAGE_KEY_USERS = 'IF_GYM_USERS_V2';
         const STORAGE_KEY_SESSION_USER = 'IF_GYM_SESSION_USER';
+        const STORAGE_KEY_MATRIX_PRODUCTS = 'IF_GYM_MATRIX_PRODUCTS_V2';
         
         /* PERSISTENT SUPABASE KEYS */
         const STORAGE_KEY_SUPABASE_URL = 'IF_GYM_SUPABASE_URL_PERM';
@@ -2059,6 +2104,7 @@
         let sales = JSON.parse(localStorage.getItem(STORAGE_KEY_SALES)) || [];
         let trainers = JSON.parse(localStorage.getItem(STORAGE_KEY_TRAINERS)) || defaultTrainers;
         let users = JSON.parse(localStorage.getItem(STORAGE_KEY_USERS)) || defaultUsers;
+        let matrixCustomProducts = JSON.parse(localStorage.getItem(STORAGE_KEY_MATRIX_PRODUCTS)) || [];
 
         let cart = [];
         let selectedCategory = 'ALL';
@@ -2400,11 +2446,11 @@
                         animation: 100,
                         forceFallback: true,
                         fallbackOnBody: true,
-                        swapThreshold: 0.1, // Swaps instantaneously upon 10% overlap
+                        swapThreshold: 0.1,
                         invertSwap: true,
                         invertedSwapThreshold: 0.1,
-                        fallbackTolerance: 0, // Zero movement deadzone: picks up instantly
-                        touchStartThreshold: 0, // Immediate response on touchscreen drag
+                        fallbackTolerance: 0,
+                        touchStartThreshold: 0,
                         delay: 0,
                         delayOnTouchOnly: false,
                         ghostClass: 'sortable-ghost',
@@ -2529,95 +2575,6 @@
 
             if (isReorderMode) {
                 setTimeout(initReorderSortable, 30);
-            }
-        }
-
-        function renderPosProducts() {
-            const grid = document.getElementById('pos-products-grid');
-            if (!grid) return;
-            const search = document.getElementById('pos-search-input')?.value.toLowerCase() || '';
-
-            const reorderBtn = document.getElementById('btn-toggle-reorder');
-            if (reorderBtn) {
-                reorderBtn.style.display = isAdminUser() ? 'inline-flex' : 'none';
-            }
-
-            grid.innerHTML = '';
-
-            const filtered = getPosDisplayProducts().filter(p => {
-                const matchesCat = (selectedCategory === 'ALL' || p.category === selectedCategory);
-                const matchesSearch = p.name.toLowerCase().includes(search) || p.category.toLowerCase().includes(search);
-                return matchesCat && matchesSearch;
-            });
-
-            if (filtered.length === 0) {
-                grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">No items found</div>`;
-                return;
-            }
-
-            filtered.forEach(p => {
-                const card = document.createElement('div');
-                card.className = 'product-card';
-                card.dataset.productId = p.id;
-
-                const isServiceOrMembership = p.category === 'Memberships' || p.category === 'PT Sessions' || p.category === 'Services' || p.category === 'Others';
-                const isLowStock = p.stock < 10 && !isServiceOrMembership;
-
-                const priceDisplay = p.isCustomPrice && (!p.prices || p.prices.length === 0)
-                    ? 'Custom Price' 
-                    : (p.prices && p.prices.length > 0 
-                        ? p.prices.map(pr => `RM ${pr.toFixed(2)}`).join(' / ') + ((p.allowCustom || p.isCustomPrice || p.category === 'PT Sessions' || p.category === 'Memberships') ? ' / Custom' : '') 
-                        : `RM ${p.price.toFixed(2)}` + ((p.allowCustom || p.isCustomPrice) ? ' / Custom' : ''));
-
-                if (isReorderMode) {
-                    card.style.border = '2px dashed var(--gold-primary)';
-                    card.style.cursor = 'grab';
-                    card.style.touchAction = 'none';
-
-                    card.innerHTML = `
-                        <div style="user-select: none;">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <div class="cat-badge">${p.category}</div>
-                                <i class="fa-solid fa-grip-dots-vertical" style="color: var(--gold-primary); font-size: 14px;"></i>
-                            </div>
-                            <div class="p-name" style="margin-top: 6px;">${p.name}</div>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
-                            <div class="p-price" style="font-size: 13px;">${priceDisplay}</div>
-                            <div class="reorder-btn-ctrl" style="display: flex; gap: 4px;" onpointerdown="event.stopPropagation()">
-                                <button class="btn-outline" style="padding: 4px 8px; font-size: 11px; background: var(--bg-card);" onclick="moveProductSequence('${p.id}', -1)" title="Move Left">
-                                    <i class="fa-solid fa-arrow-left"></i>
-                                </button>
-                                <button class="btn-outline" style="padding: 4px 8px; font-size: 11px; background: var(--bg-card);" onclick="moveProductSequence('${p.id}', 1)" title="Move Right">
-                                    <i class="fa-solid fa-arrow-right"></i>
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    card.style.border = '1px solid var(--border-color)';
-                    card.style.cursor = 'pointer';
-                    card.style.touchAction = 'auto';
-
-                    card.innerHTML = `
-                        <div>
-                            <div class="cat-badge">${p.category}</div>
-                            <div class="p-name">${p.name}</div>
-                        </div>
-                        <div>
-                            <div class="p-stock ${isLowStock ? 'low' : ''}">${isServiceOrMembership ? 'Unlimited' : `Stock: ${p.stock}`}</div>
-                            <div class="p-price" style="${p.prices && p.prices.length > 1 ? 'font-size: 11px;' : ''}">${priceDisplay}</div>
-                        </div>
-                        <div class="add-btn"><i class="fa-solid fa-plus"></i></div>
-                    `;
-                    card.onclick = () => addToCart(p);
-                }
-
-                grid.appendChild(card);
-            });
-
-            if (isReorderMode) {
-                setTimeout(initReorderSortable, 50);
             }
         }
 
@@ -2798,7 +2755,6 @@
         function getStockProduct(item) {
             const exact = products.find(p => p.id === (item.productId || item.id));
             if (exact) return exact;
-            // Older rate/custom-price cart lines encoded the product ID in their ID.
             return products.filter(p => typeof item.id === 'string' && item.id.startsWith(p.id + '_'))
                 .sort((a, b) => b.id.length - a.id.length)
                 .find(p => /^(?:P\d+(?:_.*)?|\d+)$/.test(item.id.slice(p.id.length + 1)));
@@ -3413,7 +3369,7 @@
 
                     dataPoints.push(dayTotal);
                 }
-            } else if (period === 'monthly') {
+            } else if (period === 'monthly' || period === 'last_month') {
                 labels = ['Week 1 (1-7)', 'Week 2 (8-14)', 'Week 3 (15-21)', 'Week 4 (22+)'];
                 dataPoints = [0, 0, 0, 0];
 
@@ -3497,6 +3453,157 @@
             return 'OTHERS';
         }
 
+        function getMatchingMatrixCustomProduct(item) {
+            if (!item || !matrixCustomProducts || matrixCustomProducts.length === 0) return null;
+            const itemName = (item.name || '').toLowerCase().trim();
+            const itemId = (item.id || '').trim();
+            const itemProdId = (item.productId || '').trim();
+            const stockProd = getStockProduct(item);
+
+            for (const cp of matrixCustomProducts) {
+                if (cp.productId && (itemId === cp.productId || itemProdId === cp.productId || (stockProd && stockProd.id === cp.productId))) {
+                    return cp;
+                }
+                if (cp.id && (itemId === cp.id || itemProdId === cp.id || (stockProd && stockProd.id === cp.id))) {
+                    return cp;
+                }
+                const cpName = (cp.name || '').toLowerCase().trim();
+                if (cpName) {
+                    if (itemName === cpName) return cp;
+                    if (itemName.startsWith(cpName + ' ') || itemName.startsWith(cpName + '(')) return cp;
+                    if (cpName.length >= 3 && itemName.includes(cpName)) return cp;
+                }
+            }
+            return null;
+        }
+
+        function openMatrixProductModal() {
+            if (!isAdminUser()) {
+                showAlertModal('Access Denied: Only Owner and Admin can add products to the Monthly Sales Matrix.');
+                return;
+            }
+            renderMatrixProductModal();
+            document.getElementById('matrix-product-modal')?.classList.add('active');
+        }
+
+        function renderMatrixProductModal() {
+            const select = document.getElementById('matrix-prod-select');
+            const nameInput = document.getElementById('matrix-prod-name-input');
+            const list = document.getElementById('matrix-custom-prods-list');
+            const countEl = document.getElementById('matrix-custom-count');
+
+            if (nameInput) {
+                nameInput.value = '';
+                delete nameInput.dataset.selectedId;
+            }
+
+            if (select) {
+                select.innerHTML = '<option value="">-- Choose Product from Inventory --</option>';
+                const uniqueProds = [];
+                const seenNames = new Set();
+                products.forEach(p => {
+                    const displayName = (p.category === 'Apparel' && apparelVariant(p)) ? apparelVariant(p).name : p.name;
+                    if (!seenNames.has(displayName)) {
+                        seenNames.add(displayName);
+                        uniqueProds.push({ id: p.id, name: displayName, category: p.category });
+                    }
+                });
+                uniqueProds.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.id;
+                    opt.textContent = `${p.name} (${p.category})`;
+                    select.appendChild(opt);
+                });
+            }
+
+            if (countEl) {
+                countEl.textContent = `${matrixCustomProducts.length} added`;
+            }
+
+            if (list) {
+                list.innerHTML = '';
+                if (matrixCustomProducts.length === 0) {
+                    list.innerHTML = '<div style="font-size: 11px; color: var(--text-muted); text-align: center; padding: 10px;">No custom matrix columns added yet.</div>';
+                } else {
+                    matrixCustomProducts.forEach(cp => {
+                        const itemRow = document.createElement('div');
+                        itemRow.style.cssText = 'display: flex; justify-content: space-between; align-items: center; background: var(--bg-card); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color);';
+                        itemRow.innerHTML = `
+                            <span style="font-size: 12px; font-weight: 600; color: var(--gold-light);">${cp.name}</span>
+                            <button class="btn-outline" style="padding: 2px 8px; font-size: 11px; color: var(--danger); border-color: rgba(239, 68, 68, 0.3);" onclick="removeMatrixProduct('${cp.id}')" title="Remove column">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        `;
+                        list.appendChild(itemRow);
+                    });
+                }
+            }
+        }
+
+        function onMatrixProductSelectChange() {
+            const select = document.getElementById('matrix-prod-select');
+            const nameInput = document.getElementById('matrix-prod-name-input');
+            if (!select || !nameInput) return;
+            const selectedId = select.value;
+            if (!selectedId) return;
+
+            const prod = products.find(p => p.id === selectedId);
+            if (prod) {
+                const displayName = (prod.category === 'Apparel' && apparelVariant(prod)) ? apparelVariant(prod).name : prod.name;
+                nameInput.value = displayName.toUpperCase();
+                nameInput.dataset.selectedId = prod.id;
+            }
+        }
+
+        function addMatrixProduct() {
+            if (!isAdminUser()) {
+                showAlertModal('Access Denied: Only Owner and Admin can add products to the Monthly Sales Matrix.');
+                return;
+            }
+
+            const nameInput = document.getElementById('matrix-prod-name-input');
+            const select = document.getElementById('matrix-prod-select');
+            const colName = nameInput ? nameInput.value.trim().toUpperCase() : '';
+            const selectedProdId = nameInput?.dataset?.selectedId || select?.value || '';
+
+            if (!colName) {
+                showAlertModal('Please select a product or enter a column name.');
+                return;
+            }
+
+            const exists = matrixCustomProducts.some(cp => cp.name.toUpperCase() === colName);
+            if (exists) {
+                showAlertModal(`A column named "${colName}" already exists in the matrix.`);
+                return;
+            }
+
+            const newMatrixProd = {
+                id: 'mx_' + Date.now(),
+                productId: selectedProdId || null,
+                name: colName
+            };
+
+            matrixCustomProducts.push(newMatrixProd);
+            localStorage.setItem(STORAGE_KEY_MATRIX_PRODUCTS, JSON.stringify(matrixCustomProducts));
+
+            renderMatrixProductModal();
+            renderSalesReports();
+            showAlertModal(`Added "${colName}" to Monthly Daily Sales Breakdown Matrix.`);
+        }
+
+        function removeMatrixProduct(id) {
+            if (!isAdminUser()) {
+                showAlertModal('Access Denied: Only Owner and Admin can manage Monthly Sales Matrix products.');
+                return;
+            }
+
+            matrixCustomProducts = matrixCustomProducts.filter(cp => cp.id !== id);
+            localStorage.setItem(STORAGE_KEY_MATRIX_PRODUCTS, JSON.stringify(matrixCustomProducts));
+
+            renderMatrixProductModal();
+            renderSalesReports();
+        }
+
         function renderSalesReports() {
             const datePickerVal = document.getElementById('report-date-picker')?.value;
             let refDate = new Date();
@@ -3539,6 +3646,13 @@
                     const saleDate = parseSaleDate(s.date);
                     return saleDate.getFullYear() === refDate.getFullYear() &&
                            saleDate.getMonth() === refDate.getMonth();
+                });
+            } else if (reportPeriod === 'last_month') {
+                const targetDate = new Date(refDate.getFullYear(), refDate.getMonth() - 1, 1);
+                periodSales = activeSales.filter(s => {
+                    const saleDate = parseSaleDate(s.date);
+                    return saleDate.getFullYear() === targetDate.getFullYear() &&
+                           saleDate.getMonth() === targetDate.getMonth();
                 });
             } else if (reportPeriod === 'yearly') {
                 periodSales = activeSales.filter(s => {
@@ -3860,9 +3974,15 @@
                     }
                 });
 
-                const targetYear = refDate.getFullYear();
-                const targetMonth = refDate.getMonth();
-                const endOfRefDay = new Date(targetYear, targetMonth, refDate.getDate(), 23, 59, 59, 999).getTime();
+                let repTargetDate = new Date(refDate);
+                if (reportPeriod === 'last_month') {
+                    repTargetDate = new Date(refDate.getFullYear(), refDate.getMonth() - 1, 1);
+                }
+                const targetYear = repTargetDate.getFullYear();
+                const targetMonth = repTargetDate.getMonth();
+                const endOfRefDay = (reportPeriod === 'last_month')
+                    ? new Date(targetYear, targetMonth + 1, 0, 23, 59, 59, 999).getTime()
+                    : new Date(targetYear, targetMonth, refDate.getDate(), 23, 59, 59, 999).getTime();
 
                 const activeSales = sales.filter(s => s.status !== 'Voided');
                 activeSales.forEach(s => {
@@ -3921,16 +4041,57 @@
             }
 
             const matrixWrapper = document.getElementById('monthly-matrix-wrapper');
+            const matrixHead = document.getElementById('rep-monthly-matrix-head');
             const matrixBody = document.getElementById('rep-monthly-matrix-body');
             const matrixFoot = document.getElementById('rep-monthly-matrix-foot');
 
-            if (reportPeriod === 'monthly' && matrixWrapper && matrixBody && matrixFoot) {
+            const addMatrixProdBtn = document.getElementById('btn-add-matrix-product');
+            if (addMatrixProdBtn) {
+                addMatrixProdBtn.style.display = isAdminUser() ? 'inline-flex' : 'none';
+            }
+
+            if ((reportPeriod === 'monthly' || reportPeriod === 'last_month') && matrixWrapper && matrixBody && matrixFoot) {
                 matrixWrapper.style.display = 'block';
                 matrixBody.innerHTML = '';
                 matrixFoot.innerHTML = '';
 
-                const year = refDate.getFullYear();
-                const month = refDate.getMonth();
+                if (matrixHead) {
+                    let headHtml = `
+                        <tr>
+                            <th>DATE</th>
+                            <th style="text-align: right;">CASH</th>
+                            <th style="text-align: right;">TRANSFER</th>
+                            <th style="text-align: right;">CARD</th>
+                            <th style="text-align: right; background: rgba(59, 130, 246, 0.15); color: #60a5fa;">PAYMENT TOTAL</th>
+                            <th style="text-align: right;">WALKIN</th>
+                            <th style="text-align: right;">PT</th>
+                            <th style="text-align: right;">OTHERS</th>
+                            <th style="text-align: right;">MEMBERSHIP</th>
+                            <th style="text-align: right;">MINERAL</th>
+                            <th style="text-align: right;">1.5L</th>
+                            <th style="text-align: right;">100PLUS</th>
+                            <th style="text-align: right;">EXTRAJOSS</th>
+                            <th style="text-align: right;">COFFEE</th>
+                            <th style="text-align: right;">OATSIDE</th>
+                            <th style="text-align: right;">T-SHIRT</th>
+                            <th style="text-align: right;">TOWEL</th>
+                    `;
+                    matrixCustomProducts.forEach(cp => {
+                        headHtml += `<th style="text-align: right; color: var(--gold-light);">${cp.name}</th>`;
+                    });
+                    headHtml += `
+                            <th style="text-align: right; background: rgba(16, 185, 129, 0.15); color: var(--success);">SALES TOTAL</th>
+                        </tr>
+                    `;
+                    matrixHead.innerHTML = headHtml;
+                }
+
+                let matrixDate = new Date(refDate);
+                if (reportPeriod === 'last_month') {
+                    matrixDate = new Date(refDate.getFullYear(), refDate.getMonth() - 1, 1);
+                }
+                const year = matrixDate.getFullYear();
+                const month = matrixDate.getMonth();
                 const daysInMonth = new Date(year, month + 1, 0).getDate();
 
                 const colTotals = {
@@ -3938,6 +4099,10 @@
                     walkin: 0, pt: 0, others: 0, membership: 0, mineral: 0, mineral15l: 0,
                     hundredPlus: 0, extrajoss: 0, coffee: 0, oatside: 0, tshirt: 0, towel: 0, salesTotal: 0
                 };
+                const customColTotals = {};
+                matrixCustomProducts.forEach(cp => {
+                    customColTotals[cp.id] = 0;
+                });
 
                 for (let d = 1; d <= daysInMonth; d++) {
                     const dayStr = String(d).padStart(2, '0') + '/' + String(month + 1).padStart(2, '0') + '/' + year;
@@ -3951,6 +4116,10 @@
                     let dayCash = 0, dayTransfer = 0, dayCard = 0;
                     let dayWalkin = 0, dayPt = 0, dayOthers = 0, dayMembership = 0, dayMineral = 0, day15l = 0;
                     let day100plus = 0, dayExtrajoss = 0, dayCoffee = 0, dayOatside = 0, dayTshirt = 0, dayTowel = 0;
+                    const dayCustomTotals = {};
+                    matrixCustomProducts.forEach(cp => {
+                        dayCustomTotals[cp.id] = 0;
+                    });
 
                     daySales.forEach(s => {
                         const paidAmt = parseFloat(s.paidAmount !== undefined ? s.paidAmount : s.total) || 0;
@@ -3978,6 +4147,14 @@
                             s.items.forEach(item => {
                                 const itemPrice = parseFloat(item.price) || 0;
                                 const itemQty = parseInt(item.qty, 10) || 1;
+                                const amt = itemPrice * itemQty;
+
+                                const customMatch = getMatchingMatrixCustomProduct(item);
+                                if (customMatch && dayCustomTotals[customMatch.id] !== undefined) {
+                                    dayCustomTotals[customMatch.id] += amt;
+                                    return;
+                                }
+
                                 if (isPtSessionItem(item)) {
                                     const bd = getPtPackageBreakdown(itemPrice);
                                     dayPt += (bd.ptFee || 0) * itemQty;
@@ -3985,7 +4162,6 @@
                                     return;
                                 }
                                 const k = getConsolidatedItemKey(item);
-                                const amt = itemPrice * itemQty;
                                 if (k === 'WALKIN') dayWalkin += amt;
                                 else if (k === 'MEMBERSHIP') dayMembership += amt;
                                 else if (k === 'MINERAL') dayMineral += amt;
@@ -4001,8 +4177,9 @@
                         }
                     });
 
+                    const dayCustomSum = Object.values(dayCustomTotals).reduce((sum, val) => sum + val, 0);
                     const dayPaymentTotal = (dayCash || 0) + (dayTransfer || 0) + (dayCard || 0);
-                    const daySalesTotal = (dayWalkin || 0) + (dayPt || 0) + (dayOthers || 0) + (dayMembership || 0) + (dayMineral || 0) + (day15l || 0) + (day100plus || 0) + (dayExtrajoss || 0) + (dayCoffee || 0) + (dayOatside || 0) + (dayTshirt || 0) + (dayTowel || 0);
+                    const daySalesTotal = (dayWalkin || 0) + (dayPt || 0) + (dayOthers || 0) + (dayMembership || 0) + (dayMineral || 0) + (day15l || 0) + (day100plus || 0) + (dayExtrajoss || 0) + (dayCoffee || 0) + (dayOatside || 0) + (dayTshirt || 0) + (dayTowel || 0) + dayCustomSum;
 
                     colTotals.cash += dayCash;
                     colTotals.transfer += dayTransfer;
@@ -4021,6 +4198,15 @@
                     colTotals.tshirt += dayTshirt;
                     colTotals.towel += dayTowel;
                     colTotals.salesTotal += daySalesTotal;
+
+                    matrixCustomProducts.forEach(cp => {
+                        customColTotals[cp.id] += dayCustomTotals[cp.id];
+                    });
+
+                    let rowCustomColsHtml = '';
+                    matrixCustomProducts.forEach(cp => {
+                        rowCustomColsHtml += `<td style="text-align: right;">${dayCustomTotals[cp.id].toFixed(2)}</td>`;
+                    });
 
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
@@ -4041,10 +4227,16 @@
                         <td style="text-align: right;">${dayOatside.toFixed(2)}</td>
                         <td style="text-align: right;">${dayTshirt.toFixed(2)}</td>
                         <td style="text-align: right;">${dayTowel.toFixed(2)}</td>
+                        ${rowCustomColsHtml}
                         <td style="text-align: right; font-weight: bold; background: rgba(16, 185, 129, 0.1); color: var(--success);">${(daySalesTotal || 0).toFixed(2)}</td>
                     `;
                     matrixBody.appendChild(tr);
                 }
+
+                let footCustomColsHtml = '';
+                matrixCustomProducts.forEach(cp => {
+                    footCustomColsHtml += `<td style="text-align: right;">${customColTotals[cp.id].toFixed(2)}</td>`;
+                });
 
                 matrixFoot.innerHTML = `
                     <tr style="background: rgba(212, 175, 55, 0.2); font-weight: 800; font-size: 12px; color: var(--gold-light);">
@@ -4065,6 +4257,7 @@
                         <td style="text-align: right;">${colTotals.oatside.toFixed(2)}</td>
                         <td style="text-align: right;">${colTotals.tshirt.toFixed(2)}</td>
                         <td style="text-align: right;">${colTotals.towel.toFixed(2)}</td>
+                        ${footCustomColsHtml}
                         <td style="text-align: right; background: rgba(16, 185, 129, 0.25); color: #6ee7b7;">${colTotals.salesTotal.toFixed(2)}</td>
                     </tr>
                 `;
@@ -4074,7 +4267,7 @@
         }
 
         function exportReportCSV() {
-            if (reportPeriod === 'monthly') {
+            if (reportPeriod === 'monthly' || reportPeriod === 'last_month') {
                 const datePickerVal = document.getElementById('report-date-picker')?.value;
                 let refDate = new Date();
                 if (datePickerVal) {
@@ -4082,18 +4275,31 @@
                     refDate = new Date(pYear, pMonth - 1, pDay);
                 }
 
-                const year = refDate.getFullYear();
-                const month = refDate.getMonth();
+                let matrixDate = new Date(refDate);
+                if (reportPeriod === 'last_month') {
+                    matrixDate = new Date(refDate.getFullYear(), refDate.getMonth() - 1, 1);
+                }
+                const year = matrixDate.getFullYear();
+                const month = matrixDate.getMonth();
                 const daysInMonth = new Date(year, month + 1, 0).getDate();
 
                 let csvContent = "data:text/csv;charset=utf-8,";
-                csvContent += "DATE,CASH,TRANSFER,CARD,PAYMENT TOTAL,WALKIN,PT,OTHERS,MEMBERSHIP,MINERAL,1.5L,100PLUS,EXTRAJOSS,COFFEE,OATSIDE,T-SHIRT,TOWEL,SALES TOTAL\n";
+                let csvHeaders = ["DATE", "CASH", "TRANSFER", "CARD", "PAYMENT TOTAL", "WALKIN", "PT", "OTHERS", "MEMBERSHIP", "MINERAL", "1.5L", "100PLUS", "EXTRAJOSS", "COFFEE", "OATSIDE", "T-SHIRT", "TOWEL"];
+                matrixCustomProducts.forEach(cp => {
+                    csvHeaders.push(`"${cp.name.replace(/"/g, '""')}"`);
+                });
+                csvHeaders.push("SALES TOTAL");
+                csvContent += csvHeaders.join(",") + "\n";
 
                 const colTotals = {
                     cash: 0, transfer: 0, card: 0, paymentTotal: 0,
                     walkin: 0, pt: 0, others: 0, membership: 0, mineral: 0, mineral15l: 0,
                     hundredPlus: 0, extrajoss: 0, coffee: 0, oatside: 0, tshirt: 0, towel: 0, salesTotal: 0
                 };
+                const customColTotals = {};
+                matrixCustomProducts.forEach(cp => {
+                    customColTotals[cp.id] = 0;
+                });
 
                 for (let d = 1; d <= daysInMonth; d++) {
                     const dayStr = String(d).padStart(2, '0') + '/' + String(month + 1).padStart(2, '0') + '/' + year;
@@ -4107,6 +4313,10 @@
                     let dayCash = 0, dayTransfer = 0, dayCard = 0;
                     let dayWalkin = 0, dayPt = 0, dayOthers = 0, dayMembership = 0, dayMineral = 0, day15l = 0;
                     let day100plus = 0, dayExtrajoss = 0, dayCoffee = 0, dayOatside = 0, dayTshirt = 0, dayTowel = 0;
+                    const dayCustomTotals = {};
+                    matrixCustomProducts.forEach(cp => {
+                        dayCustomTotals[cp.id] = 0;
+                    });
 
                     daySales.forEach(s => {
                         const paidAmt = parseFloat(s.paidAmount !== undefined ? s.paidAmount : s.total) || 0;
@@ -4134,6 +4344,14 @@
                             s.items.forEach(item => {
                                 const itemPrice = parseFloat(item.price) || 0;
                                 const itemQty = parseInt(item.qty, 10) || 1;
+                                const amt = itemPrice * itemQty;
+
+                                const customMatch = getMatchingMatrixCustomProduct(item);
+                                if (customMatch && dayCustomTotals[customMatch.id] !== undefined) {
+                                    dayCustomTotals[customMatch.id] += amt;
+                                    return;
+                                }
+
                                 if (isPtSessionItem(item)) {
                                     const bd = getPtPackageBreakdown(itemPrice);
                                     dayPt += (bd.ptFee || 0) * itemQty;
@@ -4141,7 +4359,6 @@
                                     return;
                                 }
                                 const k = getConsolidatedItemKey(item);
-                                const amt = itemPrice * itemQty;
                                 if (k === 'WALKIN') dayWalkin += amt;
                                 else if (k === 'MEMBERSHIP') dayMembership += amt;
                                 else if (k === 'MINERAL') dayMineral += amt;
@@ -4157,8 +4374,9 @@
                         }
                     });
 
+                    const dayCustomSum = Object.values(dayCustomTotals).reduce((sum, val) => sum + val, 0);
                     const dayPaymentTotal = (dayCash || 0) + (dayTransfer || 0) + (dayCard || 0);
-                    const daySalesTotal = (dayWalkin || 0) + (dayPt || 0) + (dayOthers || 0) + (dayMembership || 0) + (dayMineral || 0) + (day15l || 0) + (day100plus || 0) + (dayExtrajoss || 0) + (dayCoffee || 0) + (dayOatside || 0) + (dayTshirt || 0) + (dayTowel || 0);
+                    const daySalesTotal = (dayWalkin || 0) + (dayPt || 0) + (dayOthers || 0) + (dayMembership || 0) + (dayMineral || 0) + (day15l || 0) + (day100plus || 0) + (dayExtrajoss || 0) + (dayCoffee || 0) + (dayOatside || 0) + (dayTshirt || 0) + (dayTowel || 0) + dayCustomSum;
 
                     colTotals.cash += dayCash;
                     colTotals.transfer += dayTransfer;
@@ -4178,6 +4396,10 @@
                     colTotals.towel += dayTowel;
                     colTotals.salesTotal += daySalesTotal;
 
+                    matrixCustomProducts.forEach(cp => {
+                        customColTotals[cp.id] += dayCustomTotals[cp.id];
+                    });
+
                     const row = [
                         dayStr,
                         dayCash.toFixed(2),
@@ -4196,6 +4418,7 @@
                         dayOatside.toFixed(2),
                         dayTshirt.toFixed(2),
                         dayTowel.toFixed(2),
+                        ...matrixCustomProducts.map(cp => dayCustomTotals[cp.id].toFixed(2)),
                         (daySalesTotal || 0).toFixed(2)
                     ].join(",");
                     csvContent += row + "\n";
@@ -4219,6 +4442,7 @@
                     colTotals.oatside.toFixed(2),
                     colTotals.tshirt.toFixed(2),
                     colTotals.towel.toFixed(2),
+                    ...matrixCustomProducts.map(cp => customColTotals[cp.id].toFixed(2)),
                     colTotals.salesTotal.toFixed(2)
                 ].join(",");
                 csvContent += totalRow + "\n";
@@ -4529,7 +4753,6 @@
             const edited = products.find(p => p.id === editId);
             const variant = edited && apparelVariant(edited);
             document.getElementById('p-form-use-sizes').checked = Boolean(variant);
-            // Existing size groups are edited together to preserve their individual stock.
             document.getElementById('p-form-use-sizes').disabled = Boolean(variant);
             document.getElementById('p-form-cat').disabled = Boolean(variant);
             if (variant) document.getElementById('p-form-name').value = variant.name;
@@ -4679,7 +4902,6 @@
             tbody.innerHTML = '';
             kpiGrid.innerHTML = '';
 
-            // Filter sales specifically belonging to the selected month and year
             const monthSales = sales.filter(s => {
                 if (s.status === 'Voided') return false;
                 const sDate = parseSaleDate(s.date);
@@ -5424,6 +5646,9 @@
 
             const addProductBtn = document.getElementById('btn-add-product');
             if (addProductBtn) addProductBtn.style.display = isAdmin ? 'flex' : 'none';
+
+            const addMatrixProdBtn = document.getElementById('btn-add-matrix-product');
+            if (addMatrixProdBtn) addMatrixProdBtn.style.display = isAdmin ? 'inline-flex' : 'none';
         }
 
         function switchTab(tabId) {
