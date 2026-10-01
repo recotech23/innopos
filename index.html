@@ -1457,7 +1457,6 @@
                                         <th>Item / Category</th>
                                         <th style="text-align: center;">COUNT</th>
                                         <th style="text-align: right;">RM</th>
-                                        <th id="ga-share-heading" style="text-align: right;">Quantity share</th>
                                     </tr>
                                 </thead>
                                 <tbody id="rep-items-table-body"></tbody>
@@ -5753,7 +5752,6 @@ const GymAnalytics = (() => {
     function renderLists() {
         const legend = document.getElementById('ga-legend'), tbody = document.getElementById('rep-items-table-body');
         legend.replaceChildren(); tbody.replaceChildren();
-        document.getElementById('ga-share-heading').textContent = (state.mode === 'quantity' ? 'Quantity' : 'Revenue') + ' share';
         for (const group of ordered()) {
             const expanded = state.expanded.has(group.key), pct = percent(share(metric(group), total()));
             const label = (group.expandable ? (expanded ? '▾ ' : '▸ ') : '') + group.name;
@@ -5770,19 +5768,19 @@ const GymAnalytics = (() => {
             const name = el(group.expandable ? 'button' : 'strong', label, 'ga-table-name');
             if (group.expandable) { name.type = 'button'; name.setAttribute('aria-expanded', String(expanded)); row.onclick = () => toggle(group.key); }
             nameCell.append(name, el('small', group.category, 'ga-category'));
-            row.append(nameCell, el('td', number(group.units)), el('td', money(group.revenue)), el('td', pct)); tbody.append(row);
+            row.append(nameCell, el('td', number(group.units)), el('td', money(group.revenue))); tbody.append(row);
             if (expanded && group.expandable) {
                 for (const child of [...group.children].sort((a, b) => metric(b) - metric(a) || a.name.localeCompare(b.name))) {
                     const childPct = percent(share(metric(child), metric(group))) + ' of parent';
                     const detail = el('div', undefined, 'ga-child'); detail.append(el('span', '↳ ' + child.name), el('small', `${number(child.units)} units · ${money(child.revenue)} · ${childPct}`)); item.append(detail);
-                    const sub = el('tr', undefined, 'ga-detail-row'); sub.append(el('td', '↳ ' + child.name), el('td', number(child.units)), el('td', money(child.revenue)), el('td', childPct)); tbody.append(sub);
+                    const sub = el('tr', undefined, 'ga-detail-row'); sub.append(el('td', '↳ ' + child.name), el('td', number(child.units)), el('td', money(child.revenue))); tbody.append(sub);
                 }
             }
             legend.append(item);
         }
-        if (!state.groups.length) { const r = el('tr'); const c = el('td', 'No items sold in this period.'); c.colSpan = 4; r.append(c); tbody.append(r); legend.append(el('p', 'No sales to display.', 'ga-muted')); }
+        if (!state.groups.length) { const r = el('tr'); const c = el('td', 'No items sold in this period.'); c.colSpan = 3; r.append(c); tbody.append(r); legend.append(el('p', 'No sales to display.', 'ga-muted')); }
         const foot = document.getElementById('rep-items-table-foot'); foot.replaceChildren(); const row = el('tr');
-        row.append(el('td', 'TOTAL'), el('td', number(state.units)), el('td', money(state.revenue)), el('td', total() > 0 ? '100%' : '0%')); foot.append(row);
+        row.append(el('td', 'TOTAL'), el('td', number(state.units)), el('td', money(state.revenue))); foot.append(row);
         document.getElementById('ga-summary').textContent = state.mode === 'quantity' ? number(state.units) + ' units sold' : money(state.revenue) + ' item revenue';
         document.getElementById('ga-subtitle').textContent = `${state.groups.length} products · ${state.period.replace(/_/g, ' ')} · reference ${state.date}`;
     }
