@@ -5879,7 +5879,38 @@ const GymAnalytics = (() => {
         renderer.domElement.tabIndex = 0; host.prepend(renderer.domElement);
         const scene = new T.Scene(), camera = new T.PerspectiveCamera(40, 1, 0.1, 50), group = new T.Group(); scene.add(group);
         scene.add(new T.AmbientLight(0xffffff, 0.8)); const light = new T.DirectionalLight(0xffffff, 1.3); light.position.set(3, 6, 5); scene.add(light);
-        const s = { T, renderer, scene, camera, group, meshes: [], yaw: 0, pitch: 0.72, radius: 7.4, targetYaw: 0, targetPitch: 0.72, targetRadius: 7.4, pointers: new Map(), lastInput: 0, hover: null, animation: null, frame: 0, paused: window.matchMedia('(prefers-reduced-motion: reduce)').matches, reduced: window.matchMedia('(prefers-reduced-motion: reduce)').matches };
+        const s = { T, renderer, scene, camera, group, meshes: [], yaw: 0, pitch: 0.72, radius: 7.4, targetYaw: 0, targetPitch: 0.72, targetRadius: 7.4, pointers: new Map(), lastInput: 0, hover: null, animation: null, frame: 0, paused: false, reduced: window.matchMedia('(prefers-reduced-motion: reduce)').matches };
+        // A lightweight plexus halo shares the chart scene and reuses its GPU buffers.
+        const nodeCount = 44, nodePositions = new Float32Array(nodeCount * 3);
+        const linePositions = new Float32Array(nodeCount * (nodeCount - 1) * 3);
+        const nodeGeometry = new T.BufferGeometry(), lineGeometry = new T.BufferGeometry();
+        nodeGeometry.setAttribute('position', new T.BufferAttribute(nodePositions, 3).setUsage(T.DynamicDrawUsage));
+        lineGeometry.setAttribute('position', new T.BufferAttribute(linePositions, 3).setUsage(T.DynamicDrawUsage));
+        const nodes = new T.Points(nodeGeometry, new T.PointsMaterial({ color: 0xf3ce69, size: 0.035, transparent: true, opacity: 0.65, depthWrite: false }));
+        const links = new T.LineSegments(lineGeometry, new T.LineBasicMaterial({ color: 0xd4af37, transparent: true, opacity: 0.16, depthWrite: false }));
+        nodes.frustumCulled = links.frustumCulled = false;
+        scene.add(nodes, links);
+        let plexusTime = 0;
+        const updatePlexus = dt => {
+            if (!s.paused) plexusTime += dt;
+            for (let i = 0; i < nodeCount; i++) {
+                const angle = i * Math.PI * 2 / nodeCount + Math.sin(i * 2.4 + plexusTime * 0.22) * 0.12;
+                const radius = 2.35 + 0.38 * Math.sin(i * 1.7 + plexusTime * 0.3);
+                nodePositions[i * 3] = Math.cos(angle) * radius;
+                nodePositions[i * 3 + 1] = -0.25 + Math.sin(i * 2.1 + plexusTime * 0.35) * 0.65;
+                nodePositions[i * 3 + 2] = Math.sin(angle) * radius;
+            }
+            let offset = 0;
+            for (let i = 0; i < nodeCount; i++) for (let j = i + 1; j < nodeCount; j++) {
+                const a = i * 3, b = j * 3;
+                if (Math.hypot(nodePositions[a] - nodePositions[b], nodePositions[a + 1] - nodePositions[b + 1], nodePositions[a + 2] - nodePositions[b + 2]) > 0.95) continue;
+                for (let k = 0; k < 3; k++) linePositions[offset++] = nodePositions[a + k];
+                for (let k = 0; k < 3; k++) linePositions[offset++] = nodePositions[b + k];
+            }
+            nodeGeometry.attributes.position.needsUpdate = true;
+            lineGeometry.attributes.position.needsUpdate = true;
+            lineGeometry.setDrawRange(0, offset / 3);
+        };
         state.scene = s;
         const ray = new T.Raycaster(), pointer = new T.Vector2(); const tip = document.getElementById('ga-tooltip');
         const clearHover = () => { if (s.hover) s.hover.material.emissive.setHex(0); s.hover = null; tip.hidden = true; };
@@ -5911,7 +5942,8 @@ const GymAnalytics = (() => {
             s.frame = requestAnimationFrame(frame);
             if (document.hidden || !host.getClientRects().length || !total()) { last = now; return; }
             const dt = Math.min((now - last) / 1000 || 0, 0.05); last = now;
-            if (!s.paused && !s.hover && !s.pointers.size && now - s.lastInput > 3000) s.targetYaw += dt * 0.12;
+            if (!s.paused) s.targetYaw += dt * 0.12;
+            updatePlexus(dt);
             const ease = 1 - Math.exp(-10 * dt); s.yaw += (s.targetYaw - s.yaw) * ease; s.pitch += (s.targetPitch - s.pitch) * ease; s.radius += (s.targetRadius - s.radius) * ease;
             const distance = s.radius * (camera.aspect < 1 ? 1 / Math.sqrt(camera.aspect) : 1);
             camera.position.set(distance * Math.sin(s.yaw) * Math.cos(s.pitch), distance * Math.sin(s.pitch), distance * Math.cos(s.yaw) * Math.cos(s.pitch)); camera.lookAt(0, 0, 0);
