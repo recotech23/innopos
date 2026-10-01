@@ -1409,14 +1409,13 @@
                     <div class="ga-toolbar">
                         <div><h3>3D Sales Analytics</h3><p id="ga-subtitle" class="ga-muted"></p></div>
                         <div class="ga-controls" role="group" aria-label="Chart metric">
-                            <button class="ga-control" id="ga-mode-quantity" aria-pressed="true" onclick="GymAnalytics.mode('quantity')">Quantity Sold (%)</button>
-                            <button class="ga-control" id="ga-mode-revenue" aria-pressed="false" onclick="GymAnalytics.mode('revenue')">Sales Revenue (RM) (%)</button>
+                            <button class="ga-control" id="ga-mode-revenue" aria-pressed="true" onclick="GymAnalytics.mode('revenue')">Sales Revenue (RM) (%)</button>
                         </div>
                     </div>
                     <div class="ga-layout">
                         <div>
                             <div id="ga-stage"><div id="ga-message">Select a report period to view sales.</div><div id="ga-tooltip" role="status" hidden></div></div>
-                            <div id="ga-summary" class="ga-summary" aria-live="polite">0 units sold</div>
+                            <div id="ga-summary" class="ga-summary" aria-live="polite">RM 0.00 item revenue</div>
                             <div class="ga-controls"><button class="ga-control" id="ga-rotate" onclick="GymAnalytics.rotation()">Pause rotation</button><button class="ga-control" onclick="GymAnalytics.reset()">Reset view</button></div>
                             <p class="ga-muted" style="margin-top: 8px;">Drag to orbit · Pinch or scroll to zoom · Hover or tap a slice for details. Click a product below to expand its variants.</p>
                         </div>
@@ -2368,6 +2367,34 @@
             }
         }
 
+        async function loadAllSalesFromSupabase(client) {
+            // Supabase caps individual responses. Page by unique ID so older receipts
+            // are not lost and new rows do not shift subsequent offset pages.
+            const records = [];
+            let cursor = null;
+            try {
+                while (true) {
+                    let query = client.from('sales').select('*').order('id', { ascending: true }).range(0, 499);
+                    if (cursor !== null) query = query.gt('id', cursor);
+                    const { data, error } = await query;
+                    if (error) return { data: null, error };
+                    if (!Array.isArray(data)) return { data: null, error: new Error('Invalid sales response') };
+                    if (!data.length) break;
+                    const nextCursor = data[data.length - 1].id;
+                    if (nextCursor == null || nextCursor === cursor) return { data: null, error: new Error('Sales pagination did not advance') };
+                    records.push(...data);
+                    cursor = nextCursor;
+                    // Continue even if a project has a response cap smaller than 500.
+                }
+                records.sort((a, b) => {
+                    const left = Date.parse(a.created_at) || 0;
+                    const right = Date.parse(b.created_at) || 0;
+                    return right - left;
+                });
+                return { data: records, error: null };
+            } catch (error) { return { data: null, error }; }
+        }
+
         async function loadDataFromSupabase() {
             if (!supabaseClient) return;
 
@@ -2396,11 +2423,9 @@
                     localStorage.setItem(STORAGE_KEY_PRODUCTS, JSON.stringify(products));
                 }
 
-                let { data: dbSales, error: sErr } = await supabaseClient.from('sales').select('*').order('created_at', { ascending: false });
+                const { data: dbSales, error: sErr } = await loadAllSalesFromSupabase(supabaseClient);
                 if (sErr) {
-                    const fallbackRes = await supabaseClient.from('sales').select('*');
-                    dbSales = fallbackRes.data;
-                    sErr = fallbackRes.error;
+                    showAlertModal('Unable to load the complete sales history. Your previously loaded sales have been kept. Please retry the database connection.');
                 }
 
                 if (!sErr && dbSales) {
@@ -5668,7 +5693,7 @@ var XLSX={};function make_xlsx_lib(a){a.version="0.18.5",a.style_version="1.2.0"
 <script>
 /* Sales analytics is read-only: source products, transactions and POS state are never changed. */
 const GymAnalytics = (() => {
-    const state = { mode: 'quantity', groups: [], units: 0, revenue: 0, expanded: new Set(), period: '', date: '', scene: null };
+    const state = { mode: 'revenue', groups: [], units: 0, revenue: 0, expanded: new Set(), period: '', date: '', scene: null };
     const money = value => 'RM ' + value.toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const number = value => value.toLocaleString('en-MY', { maximumFractionDigits: 4 });
     const share = (value, total) => total > 0 ? value / total * 100 : 0;
@@ -5791,8 +5816,8 @@ const GymAnalytics = (() => {
         renderLists(); rebuild();
     }
     function mode(value) {
-        if (!['quantity', 'revenue'].includes(value)) return; state.mode = value;
-        for (const v of ['quantity', 'revenue']) document.getElementById('ga-mode-' + v).setAttribute('aria-pressed', String(v === value));
+        if (value !== 'revenue') return; state.mode = 'revenue';
+        document.getElementById('ga-mode-revenue').setAttribute('aria-pressed', 'true');
         renderLists(); rebuild();
     }
     function csvCell(value) { let text = String(value); if (/^[\s]*[=+@-]/.test(text)) text = "'" + text; return '"' + text.replace(/"/g, '""') + '"'; }
@@ -5922,7 +5947,7 @@ const GymAnalytics = (() => {
     }
     function rebuild() {
         const message = document.getElementById('ga-message');
-        const sum = total(); message.hidden = false; message.textContent = sum ? '' : state.units ? 'No revenue for this period. Switch to Quantity Sold to view free items.' : 'No items sold in this period.';
+        const sum = total(); message.hidden = false; message.textContent = sum ? '' : state.units ? 'No revenue for this period.' : 'No items sold in this period.';
         if (!sum) { if (state.scene) { state.scene.clearHover(); state.scene.renderer.domElement.style.visibility = 'hidden'; } return; }
         try {
             const s = initScene(), T = s.T; s.renderer.domElement.style.visibility = ''; message.hidden = true; s.clearHover();
