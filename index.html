@@ -5744,7 +5744,7 @@ const GymAnalytics = (() => {
                 const allocations = [{ info, units, price: fee ? fee.ptFee : price }];
                 if (fee && fee.othersFee > 0) allocations.push({
                     info: { name: 'Others', category: 'Others', detail: 'PT fee allocation · ' + info.detail + ' · package ' + money(price), trainer: info.trainer, variant: true },
-                    units: 0, price: fee.othersFee
+                    units: 0, sourceUnits: units, price: fee.othersFee
                 });
                 for (const allocation of allocations) {
                     const entry = allocation.info;
@@ -5757,6 +5757,7 @@ const GymAnalytics = (() => {
                     const revenue = Math.round(allocation.price * units * 100) / 100;
                     group.units += allocation.units; group.revenue += revenue;
                     child.units += allocation.units; child.revenue += revenue;
+                    if (allocation.sourceUnits) child.sourceUnits = (child.sourceUnits || 0) + allocation.sourceUnits;
                     group.variant ||= entry.variant;
                 }
             }
@@ -5797,8 +5798,10 @@ const GymAnalytics = (() => {
             if (expanded && group.expandable) {
                 for (const child of [...group.children].sort((a, b) => metric(b) - metric(a) || a.name.localeCompare(b.name))) {
                     const childPct = percent(share(metric(child), metric(group))) + ' of parent';
-                    const detail = el('div', undefined, 'ga-child'); detail.append(el('span', '↳ ' + child.name), el('small', `${number(child.units)} units · ${money(child.revenue)} · ${childPct}`)); item.append(detail);
-                    const sub = el('tr', undefined, 'ga-detail-row'); sub.append(el('td', '↳ ' + child.name), el('td', number(child.units)), el('td', money(child.revenue))); tbody.append(sub);
+                    const childCount = child.sourceUnits ? `${number(child.sourceUnits)} PT package${child.sourceUnits === 1 ? '' : 's'} allocated` : `${number(child.units)} units`;
+                    const allocationNote = child.sourceUnits ? ' · Package units counted under PT' : '';
+                    const detail = el('div', undefined, 'ga-child'); detail.append(el('span', '↳ ' + child.name), el('small', `${childCount} · ${money(child.revenue)} · ${childPct}${allocationNote}`)); item.append(detail);
+                    const sub = el('tr', undefined, 'ga-detail-row'); sub.append(el('td', '↳ ' + child.name), el('td', child.sourceUnits ? childCount + ' (counted under PT)' : number(child.units)), el('td', money(child.revenue))); tbody.append(sub);
                 }
             }
             legend.append(item);
